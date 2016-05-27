@@ -11,15 +11,9 @@ public interface IContextConfiguration {
 
     String getKeyspace();
 
-    void setKeyspace(String keyspace);
-
-    void addContactPoint(String connectionPoint);
-
-    void removeContactPint(String connectionPoint);
-
     Set<String> getContactPoints();
 
     ValidationPolicy getValidationPolicy();
 
-    void setValidationPolicy(ValidationPolicy validationPolicy);
+    ImportPolicy getImportPolicy();
 }

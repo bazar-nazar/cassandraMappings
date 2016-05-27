@@ -1,0 +1,3 @@
+userid, dateofbirth, email, firstname, lastname
+uuid(), '1989-12-02', 'bazarnazar@gmail.com', 'Alexander', 'Nazarov'
+uuid(), '1990-07-01', 'mein.leiden@gmail.com', 'Anna', 'Eremina'
