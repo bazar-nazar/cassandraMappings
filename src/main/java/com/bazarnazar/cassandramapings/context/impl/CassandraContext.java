@@ -9,6 +9,8 @@ import com.datastax.driver.mapping.MappingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+
 /**
  * Created by Bazar on 25.05.16.
  */
@@ -29,7 +31,24 @@ public final class CassandraContext {
     private Cluster cluster;
     private Session session;
     private MappingManager mappingManager;
+    private Set<Class<?>> entitiesClasses;
     private ICassandraManager cassandraManager;
+
+    public IContextConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public MappingManager getMappingManager() {
+        return mappingManager;
+    }
+
+    public Set<Class<?>> getEntitiesClasses() {
+        return entitiesClasses;
+    }
+
+    public void setEntitiesClasses(Set<Class<?>> entitiesClasses) {
+        this.entitiesClasses = entitiesClasses;
+    }
 
     public ICassandraManager getCassandraManager() {
         return cassandraManager;

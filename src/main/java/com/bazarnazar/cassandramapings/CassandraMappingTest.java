@@ -1,5 +1,6 @@
 package com.bazarnazar.cassandramapings;
 
+import com.bazarnazar.cassandramapings.context.ImportPolicy;
 import com.bazarnazar.cassandramapings.context.ValidationPolicy;
 import com.bazarnazar.cassandramapings.context.impl.AContextConfiguration;
 import com.bazarnazar.cassandramapings.context.impl.CassandraContext;
@@ -20,6 +21,7 @@ public class CassandraMappingTest {
             setKeyspace("cassandra_mappings");
             addContactPoint("10.211.55.5");
             setValidationPolicy(ValidationPolicy.DROPCREATE);
+            setImportPolicy(ImportPolicy.ADD);
         }
     }
 

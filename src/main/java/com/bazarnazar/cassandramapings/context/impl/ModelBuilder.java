@@ -43,6 +43,7 @@ public class ModelBuilder implements IModelBuilder {
                 new ConfigurationBuilder().setUrls(ClasspathHelper.forJavaClassPath()));
         Set<Class<?>> entities = reflections.getTypesAnnotatedWith(Table.class);
         entities.forEach(this::addEntityToGraph);
+        CassandraContext.getInstance().setEntitiesClasses(entities);
         if (contextConfiguration.getValidationPolicy() != ValidationPolicy.NONE) {
             LOGGER.info("Validating data model");
             this.mappingManager = mappingManager;
@@ -53,16 +54,16 @@ public class ModelBuilder implements IModelBuilder {
     }
 
     private void addEntityToGraph(Class<?> clazz) {
-        Map<String, Set<Class<?>>> tabelDependencies = new HashMap<>();
+        Map<String, Set<Class<?>>> tableDependencies = new HashMap<>();
         if (clazz.getDeclaredAnnotation(DependentTables.class) != null) {
             Set<String> columns = EntityDefinitionUtil.defineColumns(clazz).keySet();
             Set<Class<?>> dependentClasses = Arrays
                     .stream(clazz.getDeclaredAnnotation(DependentTables.class).value())
                     .collect(Collectors.toSet());
             validateDependencies(clazz, columns, dependentClasses);
-            addTableDependencies(tabelDependencies, columns, dependentClasses);
+            addTableDependencies(tableDependencies, columns, dependentClasses);
         }
-        dataModelGraph.put(clazz, tabelDependencies);
+        dataModelGraph.put(clazz, tableDependencies);
     }
 
     private void addTableDependencies(Map<String, Set<Class<?>>> tabelDependencies,
