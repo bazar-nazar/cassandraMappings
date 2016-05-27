@@ -112,5 +112,12 @@ public final class EntityDefinitionUtil {
         return columns;
     }
 
+    public static String importQuery(String tableName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("COPY ").append(tableName).append(" FROM '").append(tableName)
+                     .append(".csv'").append(" WITH HEADER=TRUE");
+        return stringBuilder.toString();
+    }
+
 
 }

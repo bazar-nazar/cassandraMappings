@@ -20,8 +20,8 @@ public class CassandraMappingTest {
         public void confugure() {
             setKeyspace("cassandra_mappings");
             addContactPoint("10.211.55.5");
-            setValidationPolicy(ValidationPolicy.DROPCREATE);
-            setImportPolicy(ImportPolicy.ADD);
+            setValidationPolicy(ValidationPolicy.NONE);
+            setImportPolicy(ImportPolicy.REPLACE);
         }
     }
 

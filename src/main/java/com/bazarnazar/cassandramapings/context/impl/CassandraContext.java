@@ -64,6 +64,8 @@ public final class CassandraContext {
             mappingManager = new MappingManager(session);
             ModelBuilder validator = new ModelBuilder();
             validator.parseDataModel(mappingManager, configuration);
+            DataImporter dataImporter = new DataImporter();
+            dataImporter.importData();
         } catch (CassandraInitializationException e) {
             LOGGER.error("Initialization Error", e);
         }
