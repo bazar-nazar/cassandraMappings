@@ -35,7 +35,7 @@ public class ModelBuilder implements IModelBuilder {
     private Map<Class<?>, Map<String, Set<Class<?>>>> dataModelGraph = new HashMap<>();
 
     @Override
-    public void parseDataModel(MappingManager mappingManager,
+    public Map<Class<?>, Map<String, Set<Class<?>>>> parseDataModel(MappingManager mappingManager,
             IContextConfiguration contextConfiguration) {
         this.mappingManager = mappingManager;
         this.contextConfiguration = contextConfiguration;
@@ -49,6 +49,7 @@ public class ModelBuilder implements IModelBuilder {
             this.contextConfiguration = contextConfiguration;
             entities.forEach(this::validateEntity);
         }
+        return dataModelGraph;
     }
 
     private void addEntityToGraph(Class<?> clazz) {
