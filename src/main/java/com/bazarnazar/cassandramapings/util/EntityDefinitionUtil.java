@@ -63,9 +63,7 @@ public final class EntityDefinitionUtil {
                                                                                                  .getDeclaredAnnotation(
                                                                                                          Order.class)
                                                                                                  .order()))
-                     .map(t -> new Tuple<>(t._1.getDeclaredAnnotation(Column.class) != null && !""
-                             .equals(t._1.getDeclaredAnnotation(Column.class).name()) ? t._1
-                             .getDeclaredAnnotation(Column.class).name() : t._1.getName(), t._2))
+                     .map(t -> new Tuple<>(EntityDefinitionUtil.getColumnName(t._1), t._2))
                      .collect(Collectors.toList());
     }
 
@@ -93,31 +91,24 @@ public final class EntityDefinitionUtil {
     public static void checkStaticColumns(Class<?> clazz, Map<String, String> columns) {
         Arrays.stream(clazz.getDeclaredFields())
               .filter(f -> f.getDeclaredAnnotation(Static.class) != null)
-              .map(f -> f.getDeclaredAnnotation(Column.class) != null && !""
-                      .equals(f.getDeclaredAnnotation(Column.class).name()) ? f
-                      .getDeclaredAnnotation(Column.class).name() : f.getName())
+              .map(EntityDefinitionUtil::getColumnName)
               .forEach(n -> columns.computeIfPresent(n, (ket, value) -> value += " static"));
     }
 
     public static Map<String, String> defineColumns(Class<?> clazz) {
-        Map<String, String> columns = Arrays.stream(clazz.getDeclaredFields()).filter(f -> f
-                .getDeclaredAnnotation(Transient.class) == null).collect(
-                Collectors.toMap((Field::getName), (f -> TypeMapper.getCQLTypeName(f.getType()))));
-        Arrays.stream(clazz.getDeclaredFields())
-              .filter(f -> f.getDeclaredAnnotation(Column.class) != null)
-              .filter(f -> !"".equals(f.getDeclaredAnnotation(Column.class).name()))
-              .peek(f -> columns.remove(f.getName())).forEach(f -> columns
-                .put(f.getDeclaredAnnotation(Column.class).name(),
-                     TypeMapper.getCQLTypeName(f.getType())));
-        return columns;
+        return Arrays.stream(clazz.getDeclaredFields())
+                     .filter(f -> f.getDeclaredAnnotation(Transient.class) == null).collect(
+                        Collectors.toMap((EntityDefinitionUtil::getColumnName),
+                                         (f -> TypeMapper.getCQLTypeName(f.getType()))));
     }
 
-    public static String importQuery(String tableName) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("COPY ").append(tableName).append(" FROM '").append(tableName)
-                     .append(".csv'").append(" WITH HEADER=TRUE");
-        return stringBuilder.toString();
-    }
 
+    public static String getColumnName(Field field) {
+        if (field.getAnnotation(Column.class) == null || ""
+                .equals(field.getAnnotation(Column.class).name())) {
+            return field.getName();
+        }
+        return field.getAnnotation(Column.class).name();
+    }
 
 }

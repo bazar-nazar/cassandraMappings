@@ -8,6 +8,7 @@ import com.bazarnazar.cassandramapings.exceptions.ValidationException;
 import com.bazarnazar.cassandramapings.util.EntityDefinitionUtil;
 import com.bazarnazar.cassandramapings.util.Tuple;
 import com.datastax.driver.core.ClusteringOrder;
+import com.datastax.driver.core.ColumnMetadata;
 import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
@@ -20,8 +21,11 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Created by Bazar on 26.05.16.
@@ -105,14 +109,55 @@ public class ModelBuilder implements IModelBuilder {
     private void validateEntity(Class<?> clazz) {
         Mapper mapper = mappingManager.mapper(clazz);
         TableMetadata tableMetadata = mapper.getTableMetadata();
-        if (ValidationPolicy.DROPCREATE.equals(contextConfiguration.getValidationPolicy())) {
-            if (tableMetadata != null) {
-                String query = EntityDefinitionUtil.dropTableQuery(tableMetadata.getName());
-                LOGGER.debug("Dropping table: {}", query);
-                mappingManager.getSession().execute(query);
-            }
-            createTable(clazz);
+        switch (contextConfiguration.getValidationPolicy()) {
+            case DROPCREATE:
+                dropCreateTable(clazz, tableMetadata);
+                break;
+            case VALIDATE:
+                validateTable(clazz, tableMetadata);
+                break;
         }
+    }
+
+    private void validateTable(Class<?> clazz, TableMetadata tableMetadata) {
+        if (tableMetadata == null) {
+            throw new ValidationException(
+                    "Table for entity " + clazz.getName() + " does not exist");
+        }
+        Stream<Field> partitionKey = Arrays.stream(clazz.getDeclaredFields()).filter(f -> f
+                .getDeclaredAnnotation(PartitionKey.class) != null).sorted((f1, f2) -> f1
+                .getDeclaredAnnotation(PartitionKey.class).value() - f2
+                .getDeclaredAnnotation(PartitionKey.class).value());
+        Stream<Field> clusterringColumns = Arrays.stream(clazz.getDeclaredFields())
+                                                 .filter(f -> f.getDeclaredAnnotation(
+                                                         ClusteringColumn.class) != null)
+                                                 .sorted((f1, f2) -> f1
+                                                         .getDeclaredAnnotation(
+                                                                 ClusteringColumn.class)
+                                                         .value() - f2
+                                                         .getDeclaredAnnotation(
+                                                                 ClusteringColumn.class)
+                                                         .value());
+        List<String> primaryKey = Stream.concat(partitionKey, clusterringColumns)
+                                        .map(EntityDefinitionUtil::getColumnName)
+                                        .collect(Collectors.toList());
+        List<ColumnMetadata> realPK = tableMetadata.getPrimaryKey();
+        if (primaryKey.size() != realPK.size() || IntStream.range(0, primaryKey.size())
+                                                           .anyMatch(i -> !primaryKey.get(i)
+                                                                                     .equals(realPK.get(
+                                                                                             i)
+                                                                                                   .getName()))) {
+            throw new ValidationException("Primary key mismatch in " + clazz.getName());
+        }
+    }
+
+    private void dropCreateTable(Class<?> clazz, TableMetadata tableMetadata) {
+        if (tableMetadata != null) {
+            String query = EntityDefinitionUtil.dropTableQuery(tableMetadata.getName());
+            LOGGER.debug("Dropping table: {}", query);
+            mappingManager.getSession().execute(query);
+        }
+        createTable(clazz);
     }
 
     private void createTable(Class<?> clazz) {
