@@ -33,6 +33,12 @@ public final class DataImportUtil {
         return stringBuilder.toString();
     }
 
+    public static String getCount(String tableName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("SELECT COUNT(*) FROM ").append(tableName).append(":");
+        return stringBuilder.toString();
+    }
+
     public static Stream<String> getInserts(String tableName) {
         try {
             Scanner scanner = new Scanner(new FileInputStream(tableName + ".csv"));
@@ -50,5 +56,6 @@ public final class DataImportUtil {
             return Stream.empty();
         }
     }
+
 
 }
