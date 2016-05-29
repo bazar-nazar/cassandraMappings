@@ -10,7 +10,7 @@ import com.bazarnazar.cassandramapings.dao.IGenericDao;
 public class GenericDao<T, ID> implements IGenericDao<T, ID> {
 
     private ICassandraManager cassandraManager = CassandraContext.getInstance()
-                                                                 .getCassandraManager();
+                                                                 .createCassandraManager();
 
     protected ICassandraManager getCassandraManager() {
         return cassandraManager;
