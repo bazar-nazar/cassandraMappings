@@ -28,7 +28,7 @@ public class DataImporter implements IDataImporter {
                 entityClasses.stream().map(e -> e.getDeclaredAnnotation(Table.class).name())
                              .filter(DataImportUtil::isFileExists)
                              .flatMap(DataImportUtil::getInserts)
-                             .peek(q -> LOGGER.debug("Inserting data: {}", q))
+                             .peek(q -> LOGGER.debug("Insert data: {}", q))
                              .forEach(mappingManager.getSession()::execute);
                 break;
             case REPLACE:
@@ -38,12 +38,22 @@ public class DataImporter implements IDataImporter {
                              .peek(t -> LOGGER.info("Clear table {}: {}", t._1, t._2))
                              .peek(t -> mappingManager.getSession().execute(t._2))
                              .flatMap(t -> DataImportUtil.getInserts(t._1))
-                             .peek(q -> LOGGER.debug("Inserting data: {}", q))
+                             .peek(q -> LOGGER.debug("Insert data: {}", q))
                              .forEach(mappingManager.getSession()::execute);
                 break;
             case IFEMPTY:
-                //todo
+                entityClasses.stream().map(e -> e.getDeclaredAnnotation(Table.class).name())
+                             .filter(DataImportUtil::isFileExists)
+                             .filter(name -> isEmpty(mappingManager, name))
+                             .flatMap(DataImportUtil::getInserts)
+                             .peek(q -> LOGGER.debug("Insert data: {}", q))
+                             .forEach(mappingManager.getSession()::execute);
                 break;
         }
+    }
+
+    private boolean isEmpty(MappingManager mappingManager, String name) {
+        return mappingManager.getSession().execute(DataImportUtil.getCount(name)).one()
+                             .getInt("count") == 0;
     }
 }
