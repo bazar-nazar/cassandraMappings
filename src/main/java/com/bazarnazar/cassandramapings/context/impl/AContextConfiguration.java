@@ -3,6 +3,7 @@ package com.bazarnazar.cassandramapings.context.impl;
 import com.bazarnazar.cassandramapings.context.IContextConfiguration;
 import com.bazarnazar.cassandramapings.context.ImportPolicy;
 import com.bazarnazar.cassandramapings.context.ValidationPolicy;
+import com.datastax.driver.core.Session;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,31 +13,17 @@ import java.util.Set;
  */
 public abstract class AContextConfiguration implements IContextConfiguration {
 
-    private String keyspace = "";
-    private final Set<String> contactPoints = new HashSet<>();
+    private Session session;
     private ValidationPolicy validationPolicy = ValidationPolicy.VALIDATE;
     private ImportPolicy importPolicy = ImportPolicy.REPLACE;
 
     @Override
-    public String getKeyspace() {
-        return keyspace;
+    public Session getSession() {
+        return session;
     }
 
-    public void setKeyspace(String keyspace) {
-        this.keyspace = keyspace;
-    }
-
-    public void addContactPoint(String contactPoint) {
-        contactPoints.add(contactPoint);
-    }
-
-    public void removeContactPint(String contactPoint) {
-        contactPoints.remove(contactPoint);
-    }
-
-    @Override
-    public Set<String> getContactPoints() {
-        return contactPoints;
+    public void setSession(Session session) {
+        this.session = session;
     }
 
     @Override
