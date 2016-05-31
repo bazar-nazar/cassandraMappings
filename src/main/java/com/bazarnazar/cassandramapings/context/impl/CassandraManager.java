@@ -1,6 +1,7 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
+import com.bazarnazar.cassandramapings.exceptions.QueryException;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
 import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
@@ -150,13 +151,11 @@ public class CassandraManager implements ICassandraManager {
                 try {
                     return (R) accessor.invoke(t);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
+                    throw new QueryException(e);
                 }
-                throw new RuntimeException();//todo valid exception
             };
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new QueryException(e);
         }
-        throw new RuntimeException();//todo valid exception
     }
 }
