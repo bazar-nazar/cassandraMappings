@@ -5,6 +5,7 @@ import com.bazarnazar.cassandramapings.model.index.VideoByTag;
 import com.bazarnazar.cassandramapings.model.joins.ActorByVideo;
 import com.bazarnazar.cassandramapings.model.joins.VideoByUser;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
+import com.datastax.driver.mapping.annotations.Computed;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class Video {
 
     @PartitionKey
+    @Computed("timeuuid()")
     private UUID videoId;
 
     @ClusteringColumn

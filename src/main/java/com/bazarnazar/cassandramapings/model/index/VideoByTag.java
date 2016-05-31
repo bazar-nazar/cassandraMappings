@@ -1,5 +1,6 @@
 package com.bazarnazar.cassandramapings.model.index;
 
+import com.bazarnazar.cassandramapings.annotations.IndexingTable;
 import com.bazarnazar.cassandramapings.annotations.Order;
 import com.datastax.driver.core.ClusteringOrder;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
@@ -13,6 +14,7 @@ import java.util.UUID;
  * Created by Bazar on 27.05.16.
  */
 @Table(name = "video_by_tag")
+@IndexingTable
 public class VideoByTag {
 
     @PartitionKey

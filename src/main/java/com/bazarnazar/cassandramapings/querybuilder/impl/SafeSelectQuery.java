@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Created by Bazar on 30.05.16.
@@ -90,14 +89,6 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
         }
         List<Condition> orderedConditions = conditions.stream().sorted()
                                                       .collect(Collectors.toList());
-        long partitionKeySize = orderedConditions.stream().filter(c -> c.partitionKey != null)
-                                                 .count();
-        if (IntStream.range(0, orderedConditions.size()).anyMatch(
-                i -> i < partitionKeySize ? orderedConditions.get(i).partitionKey
-                        .value() != i : orderedConditions.get(i).clusteringColumn
-                        .value() != i - partitionKeySize)) {
-            throw new QueryBuilderException("Invalid query");
-        }
         Select.Where where = QueryBuilder.select().all().from(tableName).where();
         orderedConditions.stream().map(Condition::getClause).forEach(where::and);
         LOGGER.debug("Created select statement: {}", where.toString());
