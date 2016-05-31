@@ -1,10 +1,12 @@
 package com.bazarnazar.cassandramapings.querybuilder.impl;
 
 import com.bazarnazar.cassandramapings.exceptions.QueryBuilderException;
+import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryNext;
 import com.bazarnazar.cassandramapings.util.EntityDefinitionUtil;
 import com.bazarnazar.cassandramapings.util.Tuple;
+import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -37,6 +39,7 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
     private T queryObject;
     private ColumnAccessHandler columnAccessHandler;
     private final Set<Condition> conditions = new HashSet<>();
+    private PagingState pagingState;
 
     SafeSelectQuery(Class<T> entityClass) {
         try {
@@ -74,6 +77,12 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
     }
 
     @Override
+    public ISafeSelectQuery<T> setPagingState(PagingState pagingState) {
+        this.pagingState = pagingState;
+        return this;
+    }
+
+    @Override
     public Statement build() {
         if (conditions.stream()
                       .anyMatch(c -> c.partitionKey == null && c.clusteringColumn == null)) {
@@ -92,6 +101,9 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
         Select.Where where = QueryBuilder.select().all().from(tableName).where();
         orderedConditions.stream().map(Condition::getClause).forEach(where::and);
         LOGGER.debug("Created select statement: {}", where.toString());
+        if (pagingState != null) {
+            return where.setPagingState(pagingState);
+        }
         return where;
     }
 

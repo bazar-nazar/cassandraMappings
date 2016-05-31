@@ -1,5 +1,6 @@
 package com.bazarnazar.cassandramapings.querybuilder;
 
+import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Statement;
 
 import java.util.Set;
@@ -10,6 +11,8 @@ import java.util.Set;
 public interface ISafeSelectQuery<T> {
 
     void setQueryObject(T queryObject);
+
+    ISafeSelectQuery<T> setPagingState(PagingState pagingState);
 
     Statement build();
 

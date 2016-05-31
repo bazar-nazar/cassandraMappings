@@ -35,12 +35,6 @@ public class ColumnAccessHandler implements MethodHandler {
     public ColumnAccessHandler() {
     }
 
-    //    @Override
-    //    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    //        lastAccessedColumnName = accessorToField(method);
-    //        return method.invoke(target, args);
-    //    }
-
     public Field getLastAccessedColumnField() {
         return lastAccessedColumnName;
     }
