@@ -7,7 +7,7 @@ import com.bazarnazar.cassandramapings.context.impl.AContextConfiguration;
 import com.bazarnazar.cassandramapings.context.impl.CassandraContext;
 import com.bazarnazar.cassandramapings.model.User;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
-import com.bazarnazar.cassandramapings.querybuilder.SafeQueryBuilder;
+import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;

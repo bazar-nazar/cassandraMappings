@@ -9,6 +9,8 @@ import java.util.Set;
  */
 public interface ISafeSelectQuery<T> {
 
+    void setQueryObject(T queryObject);
+
     Statement build();
 
 }

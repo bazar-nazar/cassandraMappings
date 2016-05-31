@@ -33,6 +33,7 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
 
     private String tableName;
     private SafeSelectQuery<T> instance;
+    private T proxyObject;
     private T queryObject;
     private ColumnAccessHandler columnAccessHandler;
     private final Set<Condition> conditions = new HashSet<>();
@@ -47,7 +48,7 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
             tableName = table.name();
 
             Tuple<T, ColumnAccessHandler> tuple = ColumnAccessHandler.proxyEntity(entityClass);
-            queryObject = tuple._1;
+            proxyObject = tuple._1;
             columnAccessHandler = tuple._2;
             instance = this;
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
@@ -56,6 +57,11 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
         }
     }
 
+
+    @Override
+    public void setQueryObject(T queryObject) {
+        this.queryObject = queryObject;
+    }
 
     @Override
     public <R> Condition<R> where(Function<T, R> extractor) {
@@ -129,13 +135,17 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
         private SafeSelectQuery<T> condition(ConditionType conditionType, R value) {
             this.value = value;
             this.conditionType = conditionType;
-            extractor.apply(queryObject);
+            extractor.apply(proxyObject);
             Field columnField = columnAccessHandler.getLastAccessedColumnField();
             columnName = EntityDefinitionUtil.getColumnName(columnField);
             partitionKey = columnField.getDeclaredAnnotation(PartitionKey.class);
             clusteringColumn = columnField.getDeclaredAnnotation(ClusteringColumn.class);
             conditions.add(this);
             return instance;
+        }
+
+        public ISafeSelectQueryNext<T> eq() {
+            return eq(extractor.apply(queryObject));
         }
 
         public ISafeSelectQueryNext<T> eq(R value) {
@@ -148,16 +158,32 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
             return condition(ConditionType.IN, null);
         }
 
+        public ISafeSelectQueryNext<T> lt() {
+            return lt(extractor.apply(queryObject));
+        }
+
         public ISafeSelectQueryNext<T> lt(R value) {
             return condition(ConditionType.LT, value);
+        }
+
+        public ISafeSelectQueryNext<T> lte() {
+            return lte(extractor.apply(queryObject));
         }
 
         public ISafeSelectQueryNext<T> lte(R value) {
             return condition(ConditionType.LTE, value);
         }
 
+        public ISafeSelectQueryNext<T> gt() {
+            return gt(extractor.apply(queryObject));
+        }
+
         public ISafeSelectQueryNext<T> gt(R value) {
             return condition(ConditionType.GT, value);
+        }
+
+        public ISafeSelectQueryNext<T> gte() {
+            return gte(extractor.apply(queryObject));
         }
 
         public ISafeSelectQueryNext<T> gte(R value) {
