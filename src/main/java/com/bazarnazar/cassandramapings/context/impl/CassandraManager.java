@@ -1,21 +1,58 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
+import com.bazarnazar.cassandramapings.querybuilder.SafeSelectQuery;
+import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.mapping.Result;
 
 /**
  * Created by Bazar on 25.05.16.
  */
 public class CassandraManager implements ICassandraManager {
 
-
     @Override
-    public <T, ID> T getById(ID id, Class<T> clazz) {
+    public <T> Result<T> query(T primaryKey, Class<T> clazz) {
         return null;
     }
 
     @Override
-    public <T, Q> T query(Q query, Class<T> clazz) {
+    public <T> Result<T> query(T primaryKey, Class<T> clazz, PagingState pagingState) {
+        return null;
+    }
+
+    @Override
+    public <T> Result<T> query(SafeSelectQuery<T> safeSelectQuery, Class<T> clazz) {
+        return null;
+    }
+
+    @Override
+    public <T> T query(Statement statement, Class<T> clazz) {
+        return null;
+    }
+
+    @Override
+    public <T, D> Result<T> queryByDependentTable(D primaryKey, Class<D> dependentClass,
+            Class<T> entityClass) {
+        return null;
+    }
+
+    @Override
+    public <T, D> Result<T> queryByDependentTable(D primaryKey, Class<D> dependentClass,
+            Class<T> entityClass, PagingState pagingState) {
+        return null;
+    }
+
+    @Override
+    public <T, D> Result<T> queryByDependentTable(SafeSelectQuery<D> safeSelectQuery,
+            Class<D> dependentClass, Class<T> entityClass) {
+        return null;
+    }
+
+    @Override
+    public <T, D> Result<T> queryByDependentTable(Statement statement, Class<D> dependentClass,
+            Class<T> entityClass) {
         return null;
     }
 
@@ -26,6 +63,16 @@ public class CassandraManager implements ICassandraManager {
 
     @Override
     public <T> void remove(T entity) {
+
+    }
+
+    @Override
+    public <T> void saveInBatch(T entity) {
+
+    }
+
+    @Override
+    public <T> void removeInBatch(T entity) {
 
     }
 
@@ -43,5 +90,4 @@ public class CassandraManager implements ICassandraManager {
     public Session getSession() {
         return null;
     }
-
 }
