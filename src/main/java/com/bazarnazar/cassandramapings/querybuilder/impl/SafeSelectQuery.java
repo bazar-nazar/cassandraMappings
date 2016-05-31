@@ -1,6 +1,8 @@
-package com.bazarnazar.cassandramapings.querybuilder;
+package com.bazarnazar.cassandramapings.querybuilder.impl;
 
 import com.bazarnazar.cassandramapings.exceptions.QueryBuilderException;
+import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
+import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryNext;
 import com.bazarnazar.cassandramapings.util.EntityDefinitionUtil;
 import com.bazarnazar.cassandramapings.util.Tuple;
 import com.datastax.driver.core.Statement;
@@ -25,7 +27,7 @@ import java.util.stream.IntStream;
 /**
  * Created by Bazar on 30.05.16.
  */
-public class SafeSelectQuery<T> {
+public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSelectQueryNext<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SafeSelectQuery.class);
 
@@ -55,14 +57,17 @@ public class SafeSelectQuery<T> {
     }
 
 
+    @Override
     public <R> Condition<R> where(Function<T, R> extractor) {
         return new Condition<>(extractor);
     }
 
+    @Override
     public <R> Condition<R> and(Function<T, R> extractor) {
         return where(extractor);
     }
 
+    @Override
     public Statement build() {
         if (conditions.stream()
                       .anyMatch(c -> c.partitionKey == null && c.clusteringColumn == null)) {
@@ -133,29 +138,29 @@ public class SafeSelectQuery<T> {
             return instance;
         }
 
-        public SafeSelectQuery<T> eq(R value) {
+        public ISafeSelectQueryNext<T> eq(R value) {
             return condition(ConditionType.EQ, value);
         }
 
-        public SafeSelectQuery<T> in(Set<R> values) {
+        public ISafeSelectQueryNext<T> in(Set<R> values) {
             this.values = new HashSet<>();
             this.values.addAll(values);
             return condition(ConditionType.IN, null);
         }
 
-        public SafeSelectQuery<T> lt(R value) {
+        public ISafeSelectQueryNext<T> lt(R value) {
             return condition(ConditionType.LT, value);
         }
 
-        public SafeSelectQuery<T> lte(R value) {
+        public ISafeSelectQueryNext<T> lte(R value) {
             return condition(ConditionType.LTE, value);
         }
 
-        public SafeSelectQuery<T> gt(R value) {
+        public ISafeSelectQueryNext<T> gt(R value) {
             return condition(ConditionType.GT, value);
         }
 
-        public SafeSelectQuery<T> gte(R value) {
+        public ISafeSelectQueryNext<T> gte(R value) {
             return condition(ConditionType.GTE, value);
         }
 

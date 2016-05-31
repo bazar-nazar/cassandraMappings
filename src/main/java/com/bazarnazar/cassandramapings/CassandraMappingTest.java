@@ -6,8 +6,8 @@ import com.bazarnazar.cassandramapings.context.ValidationPolicy;
 import com.bazarnazar.cassandramapings.context.impl.AContextConfiguration;
 import com.bazarnazar.cassandramapings.context.impl.CassandraContext;
 import com.bazarnazar.cassandramapings.model.User;
+import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.SafeQueryBuilder;
-import com.bazarnazar.cassandramapings.querybuilder.SafeSelectQuery;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
@@ -23,10 +23,10 @@ public class CassandraMappingTest {
         IContextConfiguration contextConfiguration = new MyContextConfiguration();
         CassandraContext.getInstance().init(contextConfiguration);
 
-        SafeSelectQuery<User> userSafeSelectQuery = SafeQueryBuilder.select(User.class)
-                                                                    .where(User::getUserId)
-                                                                    .eq(UUID.fromString(
-                                                                            "9c60e693-b60c-4716-bccd-bfe1da1a98f0"));
+        ISafeSelectQuery<User> userSafeSelectQuery = SafeQueryBuilder.select(User.class)
+                                                                     .where(User::getUserId)
+                                                                     .eq(UUID.fromString(
+                                                                             "9c60e693-b60c-4716-bccd-bfe1da1a98f0"));
         Mapper<User> userMapper = new MappingManager(contextConfiguration.getSession())
                 .mapper(User.class);
         for (User user : userMapper

@@ -1,7 +1,7 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
-import com.bazarnazar.cassandramapings.querybuilder.SafeSelectQuery;
+import com.bazarnazar.cassandramapings.querybuilder.impl.SafeSelectQuery;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;

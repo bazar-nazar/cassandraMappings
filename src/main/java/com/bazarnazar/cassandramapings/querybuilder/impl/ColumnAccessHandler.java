@@ -1,4 +1,4 @@
-package com.bazarnazar.cassandramapings.querybuilder;
+package com.bazarnazar.cassandramapings.querybuilder.impl;
 
 import com.bazarnazar.cassandramapings.util.Tuple;
 import javassist.util.proxy.MethodHandler;
