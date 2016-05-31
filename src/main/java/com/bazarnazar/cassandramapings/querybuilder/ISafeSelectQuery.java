@@ -16,4 +16,6 @@ public interface ISafeSelectQuery<T> {
 
     Statement build();
 
+    Class<T> getEntityClass();
+
 }

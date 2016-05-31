@@ -1,5 +1,6 @@
 package com.bazarnazar.cassandramapings;
 
+import com.bazarnazar.cassandramapings.context.ICassandraManager;
 import com.bazarnazar.cassandramapings.context.IContextConfiguration;
 import com.bazarnazar.cassandramapings.context.ImportPolicy;
 import com.bazarnazar.cassandramapings.context.ValidationPolicy;
@@ -9,8 +10,6 @@ import com.bazarnazar.cassandramapings.model.User;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.mapping.Mapper;
-import com.datastax.driver.mapping.MappingManager;
 
 import java.util.UUID;
 
@@ -27,10 +26,20 @@ public class CassandraMappingTest {
                                                                      .where(User::getUserId)
                                                                      .eq(UUID.fromString(
                                                                              "9c60e693-b60c-4716-bccd-bfe1da1a98f0"));
-        Mapper<User> userMapper = new MappingManager(contextConfiguration.getSession())
-                .mapper(User.class);
-        for (User user : userMapper
-                .map(contextConfiguration.getSession().execute(userSafeSelectQuery.build()))) {
+
+        ICassandraManager cassandraManager = CassandraContext.getInstance()
+                                                             .createCassandraManager();
+        for (User user : cassandraManager.all(User.class)) {
+            System.out.println(user);
+        }
+
+        User queryObj = new User();
+        queryObj.setUserId(UUID.fromString("9c60e693-b60c-4716-bccd-bfe1da1a98f0"));
+        for (User user : cassandraManager.query(queryObj)) {
+            System.out.println(user);
+        }
+
+        for (User user : cassandraManager.query(userSafeSelectQuery)) {
             System.out.println(user);
         }
 

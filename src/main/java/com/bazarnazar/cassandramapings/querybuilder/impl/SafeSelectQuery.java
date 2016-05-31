@@ -34,6 +34,7 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
 
     private String tableName;
     private SafeSelectQuery<T> instance;
+    private Class<T> entityClass;
     private T proxyObject;
     private T queryObject;
     private ColumnAccessHandler columnAccessHandler;
@@ -42,6 +43,7 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
 
     SafeSelectQuery(Class<T> entityClass) {
         try {
+            this.entityClass = entityClass;
             Table table;
             if ((table = entityClass.getDeclaredAnnotation(Table.class)) == null) {
                 throw new QueryBuilderException("Cant create query builder: " + entityClass
@@ -96,6 +98,11 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
             return where.setPagingState(pagingState);
         }
         return where;
+    }
+
+    @Override
+    public Class<T> getEntityClass() {
+        return entityClass;
     }
 
     private enum ConditionType {

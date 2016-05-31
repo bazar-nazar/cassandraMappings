@@ -71,7 +71,7 @@ public final class CassandraContext {
 
 
     public ICassandraManager createCassandraManager() {
-        return new CassandraManager();
+        return new CassandraManager(mappingManager, dataModelGraph);
     }
 
 }

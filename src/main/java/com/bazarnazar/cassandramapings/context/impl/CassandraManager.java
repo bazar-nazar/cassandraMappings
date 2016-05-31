@@ -1,35 +1,72 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
-import com.bazarnazar.cassandramapings.querybuilder.impl.SafeSelectQuery;
+import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
+import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
+import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.mapping.Mapper;
+import com.datastax.driver.mapping.MappingManager;
 import com.datastax.driver.mapping.Result;
+import com.datastax.driver.mapping.annotations.ClusteringColumn;
+import com.datastax.driver.mapping.annotations.PartitionKey;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Created by Bazar on 25.05.16.
  */
 public class CassandraManager implements ICassandraManager {
 
-    @Override
-    public <T> Result<T> query(T primaryKey, Class<T> clazz) {
-        return null;
+    private MappingManager mappingManager;
+    private Map<Class<?>, Map<String, Set<Class<?>>>> dataModelGraph;
+
+    public CassandraManager(MappingManager mappingManager,
+            Map<Class<?>, Map<String, Set<Class<?>>>> dataModelGraph) {
+        this.mappingManager = mappingManager;
+        this.dataModelGraph = dataModelGraph;
     }
 
     @Override
-    public <T> Result<T> query(T primaryKey, Class<T> clazz, PagingState pagingState) {
-        return null;
+    public <T> Result<T> all(Class<T> clazz) {
+        return query(SafeQueryBuilder.select(clazz));
     }
 
     @Override
-    public <T> Result<T> query(SafeSelectQuery<T> safeSelectQuery, Class<T> clazz) {
-        return null;
+    public <T> Result<T> query(T primaryKey) {
+        return query(primaryKey, null);
     }
 
     @Override
-    public <T> T query(Statement statement, Class<T> clazz) {
-        return null;
+    public <T> Result<T> query(T primaryKey, PagingState pagingState) {
+        ISafeSelectQueryInitial<T> safeSelectQueryInitial = SafeQueryBuilder.select(primaryKey);
+        Arrays.stream(primaryKey.getClass().getDeclaredFields())
+              .filter(f -> f.getDeclaredAnnotation(PartitionKey.class) != null || f
+                      .getDeclaredAnnotation(ClusteringColumn.class) != null)
+              .map(f -> CassandraManager
+                      .fieldToExtractor(f, f.getType(), safeSelectQueryInitial.getEntityClass()))
+              .forEach(extractor -> safeSelectQueryInitial.where(extractor).eq());
+        safeSelectQueryInitial.setPagingState(pagingState);
+        return query(safeSelectQueryInitial);
+    }
+
+    @Override
+    public <T> Result<T> query(ISafeSelectQuery<T> safeSelectQuery) {
+        return query(safeSelectQuery.build(), safeSelectQuery.getEntityClass());
+    }
+
+    @Override
+    public <T> Result<T> query(Statement statement, Class<T> clazz) {
+        Mapper<T> mapper = mappingManager.mapper(clazz);
+        return mapper.map(mappingManager.getSession().execute(statement));
     }
 
     @Override
@@ -45,7 +82,7 @@ public class CassandraManager implements ICassandraManager {
     }
 
     @Override
-    public <T, D> Result<T> queryByDependentTable(SafeSelectQuery<D> safeSelectQuery,
+    public <T, D> Result<T> queryByDependentTable(ISafeSelectQuery<D> safeSelectQuery,
             Class<D> dependentClass, Class<T> entityClass) {
         return null;
     }
@@ -54,6 +91,11 @@ public class CassandraManager implements ICassandraManager {
     public <T, D> Result<T> queryByDependentTable(Statement statement, Class<D> dependentClass,
             Class<T> entityClass) {
         return null;
+    }
+
+    @Override
+    public <T> T refresh(T entity) {
+        return query(entity).one();
     }
 
     @Override
@@ -89,5 +131,30 @@ public class CassandraManager implements ICassandraManager {
     @Override
     public Session getSession() {
         return null;
+    }
+
+    private static Field accessorToField(Method method) throws NoSuchFieldException {
+        return method.getDeclaringClass().getDeclaredField(
+                method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4));
+    }
+
+    private static <T, R> Function<T, R> fieldToExtractor(Field field, Class<R> fieldClass,
+            Class<T> objectClass) {
+        try {
+            Method accessor = field.getDeclaringClass().getDeclaredMethod(
+                    "get" + field.getName().substring(0, 1).toUpperCase() + field.getName()
+                                                                                 .substring(1));
+            return t -> {
+                try {
+                    return (R) accessor.invoke(t);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+                throw new RuntimeException();//todo valid exception
+            };
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        throw new RuntimeException();//todo valid exception
     }
 }
