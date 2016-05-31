@@ -8,24 +8,14 @@ import com.datastax.driver.core.Session;
  */
 public class CassandraManager implements ICassandraManager {
 
-    private Session session;
-
-    public CassandraManager(Session session) {
-        this.session = session;
-    }
-
-    void stop() {
-        session.close();
-    }
-
 
     @Override
-    public <T, ID> T getById(ID id) {
+    public <T, ID> T getById(ID id, Class<T> clazz) {
         return null;
     }
 
     @Override
-    public <T, Q> T query(Q query) {
+    public <T, Q> T query(Q query, Class<T> clazz) {
         return null;
     }
 
@@ -37,6 +27,21 @@ public class CassandraManager implements ICassandraManager {
     @Override
     public <T> void remove(T entity) {
 
+    }
+
+    @Override
+    public void openBatch() {
+
+    }
+
+    @Override
+    public void executeBatch() {
+
+    }
+
+    @Override
+    public Session getSession() {
+        return null;
     }
 
 }

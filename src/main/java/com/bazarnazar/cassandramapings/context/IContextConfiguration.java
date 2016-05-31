@@ -1,5 +1,7 @@
 package com.bazarnazar.cassandramapings.context;
 
+import com.datastax.driver.core.Session;
+
 import java.util.Set;
 
 /**
@@ -9,9 +11,7 @@ public interface IContextConfiguration {
 
     void confugure();
 
-    String getKeyspace();
-
-    Set<String> getContactPoints();
+    Session getSession();
 
     ValidationPolicy getValidationPolicy();
 

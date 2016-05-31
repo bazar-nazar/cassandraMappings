@@ -1,3 +1,3 @@
 userid, dateofbirth, email, firstname, lastname
-uuid(), '1989-12-02', 'bazarnazar@gmail.com', 'Alexander', 'Nazarov'
-uuid(), '1990-07-01', 'mein.leiden@gmail.com', 'Anna', 'Eremina'
+9c60e693-b60c-4716-bccd-bfe1da1a98f0, '1989-12-02', 'bazarnazar@gmail.com', 'Alexander', 'Nazarov'
+c20f3ad9-f2f6-4abf-9d22-794ba4113f77, '1990-07-01', 'mein.leiden@gmail.com', 'Anna', 'Eremina'
