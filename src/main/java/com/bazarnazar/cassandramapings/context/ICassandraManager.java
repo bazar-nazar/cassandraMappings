@@ -1,6 +1,7 @@
 package com.bazarnazar.cassandramapings.context;
 
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
+import com.bazarnazar.cassandramapings.context.impl.ComplexResult;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
@@ -21,16 +22,15 @@ public interface ICassandraManager {
 
     <T> Result<T> query(Statement statement, Class<T> clazz);
 
-    <T, D> Result<T> queryByDependentTable(D primaryKey, Class<D> dependentClass,
+    <T, D> ComplexResult<T, D> queryByDependentTable(D primaryKey, Class<T> entityClass);
+
+    <T, D> ComplexResult<T, D> queryByDependentTable(D primaryKey, Class<T> entityClass,
+            PagingState pagingState);
+
+    <T, D> ComplexResult<T, D> queryByDependentTable(ISafeSelectQuery<D> safeSelectQuery,
             Class<T> entityClass);
 
-    <T, D> Result<T> queryByDependentTable(D primaryKey, Class<D> dependentClass,
-            Class<T> entityClass, PagingState pagingState);
-
-    <T, D> Result<T> queryByDependentTable(ISafeSelectQuery<D> safeSelectQuery,
-            Class<D> dependentClass, Class<T> entityClass);
-
-    <T, D> Result<T> queryByDependentTable(Statement statement, Class<D> dependentClass,
+    <T, D> ComplexResult<T, D> queryByDependentTable(Statement statement, Class<D> dependentClass,
             Class<T> entityClass);
 
     <T> T refresh(T entity);

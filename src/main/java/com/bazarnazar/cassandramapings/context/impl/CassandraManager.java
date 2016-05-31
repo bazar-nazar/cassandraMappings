@@ -12,6 +12,8 @@ import com.datastax.driver.mapping.MappingManager;
 import com.datastax.driver.mapping.Result;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.PartitionKey;
+import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -26,6 +28,7 @@ import java.util.function.Function;
  */
 public class CassandraManager implements ICassandraManager {
 
+    private static MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
     private MappingManager mappingManager;
     private Map<Class<?>, Map<String, Set<Class<?>>>> dataModelGraph;
 
@@ -70,27 +73,31 @@ public class CassandraManager implements ICassandraManager {
     }
 
     @Override
-    public <T, D> Result<T> queryByDependentTable(D primaryKey, Class<D> dependentClass,
+    public <T, D> ComplexResult<T, D> queryByDependentTable(D primaryKey, Class<T> entityClass) {
+        return new ComplexResult<>(query(primaryKey), mapperFactory
+                .getMapperFacade((Class<D>) primaryKey.getClass(), entityClass), this);
+    }
+
+    @Override
+    public <T, D> ComplexResult<T, D> queryByDependentTable(D primaryKey, Class<T> entityClass,
+            PagingState pagingState) {
+        return new ComplexResult<>(query(primaryKey, pagingState), mapperFactory
+                .getMapperFacade((Class<D>) primaryKey.getClass(), entityClass), this);
+    }
+
+    @Override
+    public <T, D> ComplexResult<T, D> queryByDependentTable(ISafeSelectQuery<D> safeSelectQuery,
             Class<T> entityClass) {
-        return null;
+        return new ComplexResult<>(query(safeSelectQuery), mapperFactory
+                .getMapperFacade(safeSelectQuery.getEntityClass(), entityClass), this);
     }
 
     @Override
-    public <T, D> Result<T> queryByDependentTable(D primaryKey, Class<D> dependentClass,
-            Class<T> entityClass, PagingState pagingState) {
-        return null;
-    }
-
-    @Override
-    public <T, D> Result<T> queryByDependentTable(ISafeSelectQuery<D> safeSelectQuery,
+    public <T, D> ComplexResult<T, D> queryByDependentTable(Statement statement,
             Class<D> dependentClass, Class<T> entityClass) {
-        return null;
-    }
-
-    @Override
-    public <T, D> Result<T> queryByDependentTable(Statement statement, Class<D> dependentClass,
-            Class<T> entityClass) {
-        return null;
+        return new ComplexResult<>(query(statement, dependentClass),
+                                   mapperFactory.getMapperFacade(dependentClass, entityClass),
+                                   this);
     }
 
     @Override
@@ -131,11 +138,6 @@ public class CassandraManager implements ICassandraManager {
     @Override
     public Session getSession() {
         return null;
-    }
-
-    private static Field accessorToField(Method method) throws NoSuchFieldException {
-        return method.getDeclaringClass().getDeclaredField(
-                method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4));
     }
 
     private static <T, R> Function<T, R> fieldToExtractor(Field field, Class<R> fieldClass,
