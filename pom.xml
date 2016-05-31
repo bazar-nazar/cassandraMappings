@@ -11,6 +11,9 @@
     <properties>
         <java-version>1.8</java-version>
         <casandra-version>3.0.2</casandra-version>
+        <reflection-version>0.9.10</reflection-version>
+        <javassist-version>3.20.0-GA</javassist-version>
+        <slf4j-version>1.7.20</slf4j-version>
         <logback-version>1.1.7</logback-version>
     </properties>
 
@@ -30,19 +33,19 @@
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
-            <version>0.9.10</version>
+            <version>${reflection-version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
-            <version>3.20.0-GA</version>
+            <version>${javassist-version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.20</version>
+            <version>${slf4j-version}</version>
         </dependency>
 
         <dependency>
@@ -79,8 +82,10 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
-                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <id>make-assembly</id>
+                        <!-- this is used for inheritance merges -->
+                        <phase>package</phase>
+                        <!-- bind to the packaging phase -->
                         <goals>
                             <goal>single</goal>
                         </goals>
