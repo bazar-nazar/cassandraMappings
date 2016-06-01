@@ -30,7 +30,7 @@ public final class CassandraContext {
     private IContextConfiguration configuration;
     private MappingManager mappingManager;
     private Set<Class<?>> entitiesClasses;
-    private Map<Class<?>, Map<String, Set<Class<?>>>> dataModelGraph;
+    private Map<Class<?>, Map<String, Set<Dependency>>> dataModelGraph;
 
     public IContextConfiguration getConfiguration() {
         return configuration;

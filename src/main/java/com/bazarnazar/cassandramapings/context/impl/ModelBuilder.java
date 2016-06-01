@@ -36,10 +36,10 @@ public class ModelBuilder implements IModelBuilder {
 
     private MappingManager mappingManager;
     private IContextConfiguration contextConfiguration;
-    private Map<Class<?>, Map<String, Set<Class<?>>>> dataModelGraph = new HashMap<>();
+    private Map<Class<?>, Map<String, Set<Dependency>>> dataModelGraph = new HashMap<>();
 
     @Override
-    public Map<Class<?>, Map<String, Set<Class<?>>>> parseDataModel(MappingManager mappingManager,
+    public Map<Class<?>, Map<String, Set<Dependency>>> parseDataModel(MappingManager mappingManager,
             IContextConfiguration contextConfiguration) {
         this.mappingManager = mappingManager;
         this.contextConfiguration = contextConfiguration;
@@ -58,7 +58,7 @@ public class ModelBuilder implements IModelBuilder {
     }
 
     private void addEntityToGraph(Class<?> clazz) {
-        Map<String, Set<Class<?>>> tableDependencies = new HashMap<>();
+        Map<String, Set<Dependency>> tableDependencies = new HashMap<>();
         if (clazz.getDeclaredAnnotation(DependentTables.class) != null) {
             Set<String> columns = EntityDefinitionUtil.defineColumns(clazz).keySet();
             Set<Class<?>> dependentClasses = Arrays
@@ -70,7 +70,7 @@ public class ModelBuilder implements IModelBuilder {
         dataModelGraph.put(clazz, tableDependencies);
     }
 
-    private void addTableDependencies(Map<String, Set<Class<?>>> tabelDependencies,
+    private void addTableDependencies(Map<String, Set<Dependency>> tabelDependencies,
             Set<String> columns, Set<Class<?>> dependentClasses) {
         Set<Tuple<Class<?>, Set<String>>> dependentClassesSet = dependentClasses.stream()
                                                                                 .map(c -> new
@@ -93,7 +93,10 @@ public class ModelBuilder implements IModelBuilder {
                                                                                          .collect(
                                                                                                  Collectors
                                                                                                          .toSet())))
-               .forEach(t -> tabelDependencies.put(t._1, t._2));
+               .forEach(t -> tabelDependencies.put(t._1,
+                                                   t._2.stream().map(c -> new Dependency(c, t._1))
+                                                       .collect(Collectors.toSet())));
+        //todo add reverse dependency check
     }
 
     private void validateDependencies(Class<?> clazz, Set<String> columns,
@@ -128,25 +131,16 @@ public class ModelBuilder implements IModelBuilder {
                 .getDeclaredAnnotation(PartitionKey.class) != null).sorted((f1, f2) -> f1
                 .getDeclaredAnnotation(PartitionKey.class).value() - f2
                 .getDeclaredAnnotation(PartitionKey.class).value());
-        Stream<Field> clusterringColumns = Arrays.stream(clazz.getDeclaredFields())
-                                                 .filter(f -> f.getDeclaredAnnotation(
-                                                         ClusteringColumn.class) != null)
-                                                 .sorted((f1, f2) -> f1
-                                                         .getDeclaredAnnotation(
-                                                                 ClusteringColumn.class)
-                                                         .value() - f2
-                                                         .getDeclaredAnnotation(
-                                                                 ClusteringColumn.class)
-                                                         .value());
+        Stream<Field> clusterringColumns = Arrays.stream(clazz.getDeclaredFields()).filter(f -> f
+                .getDeclaredAnnotation(ClusteringColumn.class) != null).sorted((f1, f2) -> f1
+                .getDeclaredAnnotation(ClusteringColumn.class).value() - f2
+                .getDeclaredAnnotation(ClusteringColumn.class).value());
         List<String> primaryKey = Stream.concat(partitionKey, clusterringColumns)
                                         .map(EntityDefinitionUtil::getColumnName)
                                         .collect(Collectors.toList());
         List<ColumnMetadata> realPK = tableMetadata.getPrimaryKey();
-        if (primaryKey.size() != realPK.size() || IntStream.range(0, primaryKey.size())
-                                                           .anyMatch(i -> !primaryKey.get(i)
-                                                                                     .equals(realPK.get(
-                                                                                             i)
-                                                                                                   .getName()))) {
+        if (primaryKey.size() != realPK.size() || IntStream.range(0, primaryKey.size()).anyMatch(
+                i -> !primaryKey.get(i).equals(realPK.get(i).getName()))) {
             throw new ValidationException("Primary key mismatch in " + clazz.getName());
         }
     }

@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by Bazar on 26.05.16.
@@ -50,6 +51,13 @@ public final class EntityDefinitionUtil {
             queryStringBuilder.append("));");
         }
         return queryStringBuilder.toString();
+    }
+
+    public static Stream<Tuple<String, ClusteringOrder>> getPrimaryKey(Class<?> clazz) {
+        return Stream
+                .concat(EntityDefinitionUtil.getOrderedItems(clazz, PartitionKey.class).stream(),
+                        EntityDefinitionUtil.getOrderedItems(clazz, ClusteringColumn.class)
+                                            .stream());
     }
 
     public static List<Tuple<String, ClusteringOrder>> getOrderedItems(Class<?> clazz,
