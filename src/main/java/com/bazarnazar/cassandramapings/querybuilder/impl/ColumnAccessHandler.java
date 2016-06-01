@@ -3,11 +3,13 @@ package com.bazarnazar.cassandramapings.querybuilder.impl;
 import com.bazarnazar.cassandramapings.util.JavaBeanUtil;
 import com.bazarnazar.cassandramapings.util.Tuple;
 import javassist.util.proxy.MethodHandler;
+import javassist.util.proxy.Proxy;
 import javassist.util.proxy.ProxyFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -15,21 +17,27 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ColumnAccessHandler implements MethodHandler {
 
-    private static final ConcurrentHashMap<Class<?>, Class<?>> PROXY_CLASS_MAP = new
-            ConcurrentHashMap<>();
+    private static final Map<Class<?>, Class<?>> PROXYCLASS_CLASS_MAP = new ConcurrentHashMap<>();
 
-        public static <T> Tuple<T, ColumnAccessHandler> proxyEntity(Class<T> entityClass) throws
-                                                                                          InvocationTargetException,
-                                                                                          NoSuchMethodException,
-                                                                                          InstantiationException,
-                                                                                          IllegalAccessException {
-            ProxyFactory factory = new ProxyFactory();
-            factory.setSuperclass(entityClass);
-            factory.setFilter(method -> true);
-            ColumnAccessHandler handler = new ColumnAccessHandler();
-            T proxy = (T) factory.create(new Class<?>[0], new Object[0], handler);
-            return new Tuple<>(proxy, handler);
-        }
+    public static <T> Tuple<T, ColumnAccessHandler> proxyEntity(Class<T> entityClass) throws
+                                                                                      InvocationTargetException,
+                                                                                      NoSuchMethodException,
+                                                                                      InstantiationException,
+                                                                                      IllegalAccessException {
+        ColumnAccessHandler handler = new ColumnAccessHandler();
+        Class<T> proxyClass = (Class<T>) PROXYCLASS_CLASS_MAP
+                .computeIfAbsent(entityClass, (e) -> getProxyClass(entityClass));
+        T proxy = proxyClass.newInstance();
+        ((Proxy) proxy).setHandler(handler);
+        return new Tuple<>(proxy, handler);
+    }
+
+    private static <T> Class<?> getProxyClass(Class<T> entityClass) {
+        ProxyFactory factory = new ProxyFactory();
+        factory.setSuperclass(entityClass);
+        factory.setFilter(method -> true);
+        return factory.createClass();
+    }
 
     private Field lastAccessedColumn = null;
 
