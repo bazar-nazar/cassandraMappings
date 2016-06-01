@@ -2,7 +2,6 @@ package com.bazarnazar.cassandramapings.util;
 
 import com.bazarnazar.cassandramapings.exceptions.QueryException;
 
-import java.beans.IntrospectionException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,7 +27,7 @@ public final class CassandraManagerUtil {
                     throw new QueryException(e);
                 }
             };
-        } catch (IntrospectionException e) {
+        } catch (Throwable e) {
             throw new QueryException(e);
         }
     }

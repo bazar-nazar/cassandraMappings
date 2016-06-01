@@ -16,25 +16,37 @@ public final class JavaBeanUtil {
     private JavaBeanUtil() {
     }
 
-    public static Field getFieldByAccessor(Method method) throws IntrospectionException,
-                                                                 NoSuchFieldException {
+    public static Field getFieldByAccessor(Method method) {
         Class<?> clazz = method.getDeclaringClass();
-        BeanInfo info = Introspector.getBeanInfo(clazz);
-        PropertyDescriptor[] props = info.getPropertyDescriptors();
-        for (PropertyDescriptor pd : props) {
-            if (method.equals(pd.getWriteMethod()) || method.equals(pd.getReadMethod())) {
-                return clazz.getDeclaredField(pd.getDisplayName());
+        BeanInfo info = null;
+        try {
+            info = Introspector.getBeanInfo(clazz);
+            PropertyDescriptor[] props = info.getPropertyDescriptors();
+            for (PropertyDescriptor pd : props) {
+                if (method.equals(pd.getWriteMethod()) || method.equals(pd.getReadMethod())) {
+                    return clazz.getDeclaredField(pd.getDisplayName());
+                }
             }
+            return null;
+        } catch (IntrospectionException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
-    public static Method getSetterByField(Field field) throws IntrospectionException {
-        return getPropertyDescriptorByField(field).getWriteMethod();
+    public static Method getSetterByField(Field field) {
+        try {
+            return getPropertyDescriptorByField(field).getWriteMethod();
+        } catch (IntrospectionException e) {
+            throw new RuntimeException();
+        }
     }
 
-    public static Method getGetterByField(Field field) throws IntrospectionException {
-        return getPropertyDescriptorByField(field).getReadMethod();
+    public static Method getGetterByField(Field field) {
+        try {
+            return getPropertyDescriptorByField(field).getReadMethod();
+        } catch (IntrospectionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static PropertyDescriptor getPropertyDescriptorByField(Field field) throws
