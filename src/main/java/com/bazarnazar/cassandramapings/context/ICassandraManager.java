@@ -33,6 +33,17 @@ public interface ICassandraManager {
     <T, D> ComplexResult<T, D> queryByDependentTable(Statement statement, Class<D> dependentClass,
             Class<T> entityClass);
 
+    <T, D> ComplexResult<T, D> queryDistinctByDependentTable(D primaryKey, Class<T> entityClass);
+
+    <T, D> ComplexResult<T, D> queryDistinctByDependentTable(D primaryKey, Class<T> entityClass,
+            PagingState pagingState);
+
+    <T, D> ComplexResult<T, D> queryDistinctByDependentTable(ISafeSelectQuery<D> safeSelectQuery,
+            Class<T> entityClass);
+
+    <T, D> ComplexResult<T, D> queryDistinctByDependentTable(Statement statement, Class<D> dependentClass,
+            Class<T> entityClass);
+
     <T> T refresh(T entity);
 
     <T> void save(T entity);

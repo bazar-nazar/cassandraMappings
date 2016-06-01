@@ -20,7 +20,7 @@ import java.util.UUID;
 public class Video {
 
     @PartitionKey
-    @Computed("timeuuid()")
+    @Computed("now()")
     private UUID videoId;
 
     @ClusteringColumn
@@ -30,7 +30,7 @@ public class Video {
 
     private String description;
 
-    private Date releaseYear;
+    private Integer releaseYear;
 
     private String tag;
 
@@ -68,11 +68,11 @@ public class Video {
         this.description = description;
     }
 
-    public Date getReleaseYear() {
+    public Integer getReleaseYear() {
         return releaseYear;
     }
 
-    public void setReleaseYear(Date releaseYear) {
+    public void setReleaseYear(Integer releaseYear) {
         this.releaseYear = releaseYear;
     }
 

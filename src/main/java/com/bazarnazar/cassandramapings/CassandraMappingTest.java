@@ -7,6 +7,7 @@ import com.bazarnazar.cassandramapings.context.ValidationPolicy;
 import com.bazarnazar.cassandramapings.context.impl.AContextConfiguration;
 import com.bazarnazar.cassandramapings.context.impl.CassandraContext;
 import com.bazarnazar.cassandramapings.model.User;
+import com.bazarnazar.cassandramapings.model.Video;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
 import com.datastax.driver.core.Cluster;
@@ -21,14 +22,36 @@ public class CassandraMappingTest {
     public static void main(String[] args) {
         IContextConfiguration contextConfiguration = new MyContextConfiguration();
         CassandraContext.getInstance().init(contextConfiguration);
+        ICassandraManager cassandraManager = CassandraContext.getInstance()
+                                                             .createCassandraManager();
 
+        queryTest(cassandraManager);
+
+        ISafeSelectQuery<Video> videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
+
+        for (User user : cassandraManager
+                .queryByDependentTable(videoISafeSelectQuery, User.class)) {
+            System.out.println(user);
+        }
+
+        videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
+
+        for (User user : cassandraManager
+                .queryDistinctByDependentTable(videoISafeSelectQuery, User.class)) {
+            System.out.println(user);
+        }
+
+
+        CassandraContext.getInstance().stop();
+    }
+
+    private static void queryTest(ICassandraManager cassandraManager) {
         ISafeSelectQuery<User> userSafeSelectQuery = SafeQueryBuilder.select(User.class)
                                                                      .where(User::getUserId)
                                                                      .eq(UUID.fromString(
                                                                              "9c60e693-b60c-4716-bccd-bfe1da1a98f0"));
 
-        ICassandraManager cassandraManager = CassandraContext.getInstance()
-                                                             .createCassandraManager();
+
         for (User user : cassandraManager.all(User.class)) {
             System.out.println(user);
         }
@@ -42,8 +65,6 @@ public class CassandraMappingTest {
         for (User user : cassandraManager.query(userSafeSelectQuery)) {
             System.out.println(user);
         }
-
-        CassandraContext.getInstance().stop();
     }
 
     public static class MyContextConfiguration extends AContextConfiguration {

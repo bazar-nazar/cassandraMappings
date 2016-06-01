@@ -102,6 +102,34 @@ public class CassandraManager implements ICassandraManager {
     }
 
     @Override
+    public <T, D> ComplexResult<T, D> queryDistinctByDependentTable(D primaryKey, Class<T> entityClass) {
+        return new DistinctResult<>(query(primaryKey), mapperFactory
+                .getMapperFacade((Class<D>) primaryKey.getClass(), entityClass), this);
+    }
+
+    @Override
+    public <T, D> ComplexResult<T, D> queryDistinctByDependentTable(D primaryKey, Class<T> entityClass,
+            PagingState pagingState) {
+        return new DistinctResult<>(query(primaryKey, pagingState), mapperFactory
+                .getMapperFacade((Class<D>) primaryKey.getClass(), entityClass), this);
+    }
+
+    @Override
+    public <T, D> ComplexResult<T, D> queryDistinctByDependentTable(ISafeSelectQuery<D> safeSelectQuery,
+            Class<T> entityClass) {
+        return new DistinctResult<>(query(safeSelectQuery), mapperFactory
+                .getMapperFacade(safeSelectQuery.getEntityClass(), entityClass), this);
+    }
+
+    @Override
+    public <T, D> ComplexResult<T, D> queryDistinctByDependentTable(Statement statement,
+            Class<D> dependentClass, Class<T> entityClass) {
+        return new DistinctResult<>(query(statement, dependentClass),
+                                   mapperFactory.getMapperFacade(dependentClass, entityClass),
+                                   this);
+    }
+
+    @Override
     public <T> T refresh(T entity) {
         return query(entity).one();
     }

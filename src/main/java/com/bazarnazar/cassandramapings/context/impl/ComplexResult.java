@@ -14,21 +14,16 @@ import java.util.List;
  */
 public class ComplexResult<T, INDEX> implements Iterable<T> {
 
-    private final Result<INDEX> rs;
-    private ICassandraManager cassandraManager;
-    private BoundMapperFacade<INDEX, T> boundMapperFacade;
+    protected final Result<INDEX> rs;
+    protected ICassandraManager cassandraManager;
+    protected BoundMapperFacade<INDEX, T> boundMapperFacade;
+    protected Result<T> resultBuffer = null;
 
     ComplexResult(Result<INDEX> rs, BoundMapperFacade<INDEX, T> boundMapperFacade,
             ICassandraManager cassandraManager) {
         this.rs = rs;
         this.cassandraManager = cassandraManager;
         this.boundMapperFacade = boundMapperFacade;
-    }
-
-    private T map(INDEX index) {
-        //todo need to be optimized(bucket select)
-        T queryObject = boundMapperFacade.map(index);
-        return cassandraManager.<T>query(queryObject).one();
     }
 
     /**
@@ -48,7 +43,7 @@ public class ComplexResult<T, INDEX> implements Iterable<T> {
      */
     public T one() {
         INDEX row = rs.one();
-        return row == null ? null : map(row);
+        return row == null ? null : map(row).one();
     }
 
     /**
@@ -62,9 +57,32 @@ public class ComplexResult<T, INDEX> implements Iterable<T> {
         List<INDEX> rows = rs.all();
         List<T> entities = new ArrayList<>(rows.size());
         for (INDEX row : rows) {
-            entities.add(map(row));
+            entities.addAll(map(row).all());
         }
         return entities;
+    }
+
+    //    Set<INDEX> rows = rs.all().stream().collect(Collectors.toSet());
+    //    Set<T> entities = new HashSet<>();
+    //    for (INDEX row : rows) {
+    //        entities.addAll(map(row).all());
+    //    }
+    //    return entities.stream().collect(Collectors.toList());
+
+    protected Result<T> map(INDEX index) {
+        //todo need to be optimized(bucket select)
+        T queryObject = boundMapperFacade.map(index);
+        return cassandraManager.<T>query(queryObject);
+    }
+
+
+    protected Iterator<T> fetch(Iterator<T> dataIterator, Iterator<INDEX> indexIterator) {
+        while ((resultBuffer == null || !dataIterator.hasNext()) && indexIterator.hasNext()) {
+            T indexVal = boundMapperFacade.map(indexIterator.next());
+            resultBuffer = cassandraManager.<T>query(indexVal);
+            dataIterator = resultBuffer.iterator();
+        }
+        return dataIterator;
     }
 
     /**
@@ -82,16 +100,19 @@ public class ComplexResult<T, INDEX> implements Iterable<T> {
     @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
-            private final Iterator<INDEX> rowIterator = rs.iterator();
+            private final Iterator<INDEX> indexIterator = rs.iterator();
+            private Iterator<T> dataIterator = null;
 
             @Override
             public boolean hasNext() {
-                return rowIterator.hasNext();
+                dataIterator = fetch(dataIterator, indexIterator);
+                return (resultBuffer != null && dataIterator.hasNext());
             }
 
             @Override
             public T next() {
-                return map(rowIterator.next());
+                dataIterator = fetch(dataIterator, indexIterator);
+                return dataIterator.next();
             }
 
             @Override

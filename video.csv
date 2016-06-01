@@ -1,0 +1,10 @@
+videoid, userid, title, description, releaseYear, tag, genres
+now(), 9c60e693-b60c-4716-bccd-bfe1da1a98f0, 'VideoBazar', 'description1', 2015, 'trash', 'home'
+now(), 9c60e693-b60c-4716-bccd-bfe1da1a98f0, 'VideoBazar2', 'description2', 2014, 'trash', 'home'
+now(), 9c60e693-b60c-4716-bccd-bfe1da1a98f0, 'VideoBazar3', 'description3', 2013, 'trash', 'home'
+now(), 9c60e693-b60c-4716-bccd-bfe1da1a98f0, 'VideoBazar4', 'description4', 2012, 'trash', 'home'
+now(), c20f3ad9-f2f6-4abf-9d22-794ba4113f77, 'VideoVanda', 'description5', 2011, 'cute', 'home'
+now(), c20f3ad9-f2f6-4abf-9d22-794ba4113f77, 'VideoVanda2', 'description6', 2010, 'cute', 'home'
+now(), c20f3ad9-f2f6-4abf-9d22-794ba4113f77, 'VideoVanda3', 'description7', 2009, 'cute', 'home'
+now(), c20f3ad9-f2f6-4abf-9d22-794ba4113f77, 'VideoVanda4', 'description8', 2008, 'cute', 'home'
+now(), c20f3ad9-f2f6-4abf-9d22-794ba4113f77, 'VideoVanda5', 'description9', 2007, 'cute', 'home'
