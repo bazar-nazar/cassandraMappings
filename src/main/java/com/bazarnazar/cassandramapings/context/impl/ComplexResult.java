@@ -2,7 +2,6 @@ package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
 import com.datastax.driver.core.ExecutionInfo;
-import com.datastax.driver.mapping.Result;
 import ma.glasnost.orika.BoundMapperFacade;
 
 import java.util.ArrayList;
@@ -14,12 +13,12 @@ import java.util.List;
  */
 public class ComplexResult<T, INDEX> implements Iterable<T> {
 
-    protected final Result<INDEX> rs;
+    protected final ProxyResult<INDEX> rs;
     protected ICassandraManager cassandraManager;
     protected BoundMapperFacade<INDEX, T> boundMapperFacade;
-    protected Result<T> resultBuffer = null;
+    protected ProxyResult<T> resultBuffer = null;
 
-    ComplexResult(Result<INDEX> rs, BoundMapperFacade<INDEX, T> boundMapperFacade,
+    ComplexResult(ProxyResult<INDEX> rs, BoundMapperFacade<INDEX, T> boundMapperFacade,
             ICassandraManager cassandraManager) {
         this.rs = rs;
         this.cassandraManager = cassandraManager;
@@ -69,7 +68,7 @@ public class ComplexResult<T, INDEX> implements Iterable<T> {
     //    }
     //    return entities.stream().collect(Collectors.toList());
 
-    protected Result<T> map(INDEX index) {
+    protected ProxyResult<T> map(INDEX index) {
         //todo need to be optimized(bucket select)
         T queryObject = boundMapperFacade.map(index);
         return cassandraManager.<T>query(queryObject);

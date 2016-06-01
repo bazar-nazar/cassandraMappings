@@ -18,18 +18,18 @@ public class ColumnAccessHandler implements MethodHandler {
     private static final ConcurrentHashMap<Class<?>, Class<?>> PROXY_CLASS_MAP = new
             ConcurrentHashMap<>();
 
-    public static <T> Tuple<T, ColumnAccessHandler> proxyEntity(Class<T> entityClass) throws
-                                                                                      InvocationTargetException,
-                                                                                      NoSuchMethodException,
-                                                                                      InstantiationException,
-                                                                                      IllegalAccessException {
-        ProxyFactory factory = new ProxyFactory();
-        factory.setSuperclass(entityClass);
-        factory.setFilter(method -> true);
-        ColumnAccessHandler handler = new ColumnAccessHandler();
-        T proxy = (T) factory.create(new Class<?>[0], new Object[0], handler);
-        return new Tuple<>(proxy, handler);
-    }
+        public static <T> Tuple<T, ColumnAccessHandler> proxyEntity(Class<T> entityClass) throws
+                                                                                          InvocationTargetException,
+                                                                                          NoSuchMethodException,
+                                                                                          InstantiationException,
+                                                                                          IllegalAccessException {
+            ProxyFactory factory = new ProxyFactory();
+            factory.setSuperclass(entityClass);
+            factory.setFilter(method -> true);
+            ColumnAccessHandler handler = new ColumnAccessHandler();
+            T proxy = (T) factory.create(new Class<?>[0], new Object[0], handler);
+            return new Tuple<>(proxy, handler);
+        }
 
     private Field lastAccessedColumn = null;
 

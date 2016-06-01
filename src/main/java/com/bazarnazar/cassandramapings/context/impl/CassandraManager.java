@@ -1,6 +1,7 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
+import com.bazarnazar.cassandramapings.context.pojo.IPojo;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
 import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
@@ -10,7 +11,6 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
-import com.datastax.driver.mapping.Result;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import ma.glasnost.orika.MapperFactory;
@@ -36,17 +36,17 @@ public class CassandraManager implements ICassandraManager {
     }
 
     @Override
-    public <T> Result<T> all(Class<T> clazz) {
+    public <T> ProxyResult<T> all(Class<T> clazz) {
         return query(SafeQueryBuilder.select(clazz));
     }
 
     @Override
-    public <T> Result<T> query(T primaryKey) {
+    public <T> ProxyResult<T> query(T primaryKey) {
         return query(primaryKey, null);
     }
 
     @Override
-    public <T> Result<T> query(T primaryKey, PagingState pagingState) {
+    public <T> ProxyResult<T> query(T primaryKey, PagingState pagingState) {
         ISafeSelectQueryInitial<T> safeSelectQueryInitial = SafeQueryBuilder.select(primaryKey);
         Arrays.stream(primaryKey.getClass().getDeclaredFields())
               .filter(f -> f.getDeclaredAnnotation(PartitionKey.class) != null || f
@@ -59,14 +59,14 @@ public class CassandraManager implements ICassandraManager {
     }
 
     @Override
-    public <T> Result<T> query(ISafeSelectQuery<T> safeSelectQuery) {
+    public <T> ProxyResult<T> query(ISafeSelectQuery<T> safeSelectQuery) {
         return query(safeSelectQuery.build(), safeSelectQuery.getEntityClass());
     }
 
     @Override
-    public <T> Result<T> query(Statement statement, Class<T> clazz) {
+    public <T> ProxyResult<T> query(Statement statement, Class<T> clazz) {
         Mapper<T> mapper = mappingManager.mapper(clazz);
-        return mapper.map(mappingManager.getSession().execute(statement));
+        return new ProxyResult<>(mapper.map(mappingManager.getSession().execute(statement)));
     }
 
     @Override
@@ -133,7 +133,10 @@ public class CassandraManager implements ICassandraManager {
 
     @Override
     public <T> void save(T entity) {
-
+        if (entity instanceof IPojo) {
+            IPojo pojo = (IPojo) entity;
+            pojo.getModifiedColumns().forEach(System.out::println);
+        }
     }
 
     @Override

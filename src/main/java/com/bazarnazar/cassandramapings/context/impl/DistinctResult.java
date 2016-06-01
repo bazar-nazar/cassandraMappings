@@ -1,7 +1,6 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
-import com.datastax.driver.mapping.Result;
 import ma.glasnost.orika.BoundMapperFacade;
 
 import java.util.HashSet;
@@ -17,7 +16,7 @@ public class DistinctResult<T, INDEX> extends ComplexResult<T, INDEX> {
 
     private Set<T> usedIndexes = new HashSet<>();
 
-    DistinctResult(Result<INDEX> rs, BoundMapperFacade<INDEX, T> boundMapperFacade,
+    DistinctResult(ProxyResult<INDEX> rs, BoundMapperFacade<INDEX, T> boundMapperFacade,
             ICassandraManager cassandraManager) {
         super(rs, boundMapperFacade, cassandraManager);
     }
