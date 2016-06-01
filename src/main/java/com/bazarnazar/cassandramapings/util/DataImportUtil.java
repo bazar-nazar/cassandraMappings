@@ -28,23 +28,17 @@ public final class DataImportUtil {
     }
 
     public static String getTruncate(String tableName) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("TRUNCATE ").append(tableName);
-        return stringBuilder.toString();
+        return "TRUNCATE " + tableName;
     }
 
     public static String getCount(String tableName) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("SELECT COUNT(*) FROM ").append(tableName).append(":");
-        return stringBuilder.toString();
+        return "SELECT COUNT(*) FROM " + tableName + ":";
     }
 
     public static Stream<String> getInserts(String tableName) {
         try {
             Scanner scanner = new Scanner(new FileInputStream(tableName + ".csv"));
-            StringBuilder stringBuilder = new StringBuilder();
-            String prefix = stringBuilder.append("INSERT INTO ").append(tableName).append("(")
-                                         .append(scanner.nextLine()).append(") VALUES(").toString();
+            String prefix = "INSERT INTO " + tableName + "(" + scanner.nextLine() + ") VALUES(";
             List<String> rows = new ArrayList<>();
             String row;
             while (scanner.hasNext() && !"".equals(row = scanner.nextLine().trim())) {

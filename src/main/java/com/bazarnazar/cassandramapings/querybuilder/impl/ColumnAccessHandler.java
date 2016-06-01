@@ -1,5 +1,6 @@
 package com.bazarnazar.cassandramapings.querybuilder.impl;
 
+import com.bazarnazar.cassandramapings.util.JavaBeanUtil;
 import com.bazarnazar.cassandramapings.util.Tuple;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
@@ -30,24 +31,19 @@ public class ColumnAccessHandler implements MethodHandler {
         return new Tuple<>(proxy, handler);
     }
 
-    private Field lastAccessedColumnName = null;
+    private Field lastAccessedColumn = null;
 
     public ColumnAccessHandler() {
     }
 
     public Field getLastAccessedColumnField() {
-        return lastAccessedColumnName;
-    }
-
-    private static Field accessorToField(Method method) throws NoSuchFieldException {
-        return method.getDeclaringClass().getDeclaredField(
-                method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4));
+        return lastAccessedColumn;
     }
 
     @Override
     public Object invoke(Object o, Method method, Method proceed, Object[] objects) throws
                                                                                     Throwable {
-        lastAccessedColumnName = accessorToField(method);
+        lastAccessedColumn = JavaBeanUtil.getFieldByAccessor(method);
         return null;
     }
 }

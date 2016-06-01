@@ -1,10 +1,10 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
-import com.bazarnazar.cassandramapings.exceptions.QueryException;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
 import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
+import com.bazarnazar.cassandramapings.util.CassandraManagerUtil;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
@@ -16,13 +16,9 @@ import com.datastax.driver.mapping.annotations.PartitionKey;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * Created by Bazar on 25.05.16.
@@ -55,7 +51,7 @@ public class CassandraManager implements ICassandraManager {
         Arrays.stream(primaryKey.getClass().getDeclaredFields())
               .filter(f -> f.getDeclaredAnnotation(PartitionKey.class) != null || f
                       .getDeclaredAnnotation(ClusteringColumn.class) != null)
-              .map(f -> CassandraManager
+              .map(f -> CassandraManagerUtil
                       .fieldToExtractor(f, f.getType(), safeSelectQueryInitial.getEntityClass()))
               .forEach(extractor -> safeSelectQueryInitial.where(extractor).eq());
         safeSelectQueryInitial.setPagingState(pagingState);
@@ -167,24 +163,7 @@ public class CassandraManager implements ICassandraManager {
 
     @Override
     public Session getSession() {
-        return null;
+        return mappingManager.getSession();
     }
 
-    private static <T, R> Function<T, R> fieldToExtractor(Field field, Class<R> fieldClass,
-            Class<T> objectClass) {
-        try {
-            Method accessor = field.getDeclaringClass().getDeclaredMethod(
-                    "get" + field.getName().substring(0, 1).toUpperCase() + field.getName()
-                                                                                 .substring(1));
-            return t -> {
-                try {
-                    return (R) accessor.invoke(t);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new QueryException(e);
-                }
-            };
-        } catch (NoSuchMethodException e) {
-            throw new QueryException(e);
-        }
-    }
 }
