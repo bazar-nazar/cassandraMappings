@@ -1,5 +1,8 @@
 package com.bazarnazar.cassandramapings.util;
 
+import com.bazarnazar.cassandramapings.context.pojo.IPojo;
+import com.bazarnazar.cassandramapings.exceptions.QueryException;
+
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -45,7 +48,7 @@ public final class JavaBeanUtil {
         try {
             return getPropertyDescriptorByField(field).getReadMethod();
         } catch (IntrospectionException e) {
-            throw new RuntimeException(e);
+            throw new QueryException(e);
         }
     }
 

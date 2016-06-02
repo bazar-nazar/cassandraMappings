@@ -5,6 +5,7 @@ import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryNext;
 import com.bazarnazar.cassandramapings.util.EntityDefinitionUtil;
+import com.bazarnazar.cassandramapings.util.QueryUtil;
 import com.bazarnazar.cassandramapings.util.Tuple;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Statement;
@@ -13,7 +14,6 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.PartitionKey;
-import com.datastax.driver.mapping.annotations.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,18 +22,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Created by Bazar on 30.05.16.
  */
-public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSelectQueryNext<T> {
+public class SafeSelectBuilder<T> implements ISafeSelectQueryInitial<T>, ISafeSelectQueryNext<T> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SafeSelectQuery.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SafeSelectBuilder.class);
 
     private String tableName;
-    private SafeSelectQuery<T> instance;
+    private SafeSelectBuilder<T> instance;
     private Class<T> entityClass;
     private T proxyObject;
     private T queryObject;
@@ -41,16 +42,10 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
     private final Set<Condition> conditions = new HashSet<>();
     private PagingState pagingState;
 
-    SafeSelectQuery(Class<T> entityClass) {
+    SafeSelectBuilder(Class<T> entityClass) {
         try {
             this.entityClass = entityClass;
-            Table table;
-            if ((table = entityClass.getDeclaredAnnotation(Table.class)) == null) {
-                throw new QueryBuilderException("Cant create query builder: " + entityClass
-                        .getName() + " doesn't have @Table annotation");
-            }
-            tableName = table.name();
-
+            tableName = QueryUtil.getTableName(entityClass);
             Tuple<T, ColumnAccessHandler> tuple = ColumnAccessHandler.proxyEntity(entityClass);
             proxyObject = tuple._1;
             columnAccessHandler = tuple._2;
@@ -89,15 +84,20 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
                       .anyMatch(c -> c.partitionKey == null && c.clusteringColumn == null)) {
             throw new QueryBuilderException("Invalid query");
         }
-        List<Condition> orderedConditions = conditions.stream().sorted()
-                                                      .collect(Collectors.toList());
         Select.Where where = QueryBuilder.select().all().from(tableName).where();
-        orderedConditions.stream().map(Condition::getClause).forEach(where::and);
+        setWhere(where::and);
         LOGGER.debug("Created select statement: {}", where.toString());
         if (pagingState != null) {
             return where.setPagingState(pagingState);
         }
         return where;
+    }
+
+    @Override
+    public void setWhere(Consumer<Clause> clauseConsumer) {
+        List<Condition> orderedConditions = conditions.stream().sorted()
+                                                      .collect(Collectors.toList());
+        orderedConditions.stream().map(Condition::getClause).forEach(clauseConsumer);
     }
 
     @Override
@@ -142,7 +142,7 @@ public class SafeSelectQuery<T> implements ISafeSelectQueryInitial<T>, ISafeSele
             }
         }
 
-        private SafeSelectQuery<T> condition(ConditionType conditionType, R value) {
+        private SafeSelectBuilder<T> condition(ConditionType conditionType, R value) {
             this.value = value;
             this.conditionType = conditionType;
             extractor.apply(proxyObject);

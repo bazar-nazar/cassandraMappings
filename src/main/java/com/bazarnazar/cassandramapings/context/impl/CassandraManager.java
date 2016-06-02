@@ -1,24 +1,24 @@
 package com.bazarnazar.cassandramapings.context.impl;
 
+import com.bazarnazar.cassandramapings.annotations.IndexingTable;
 import com.bazarnazar.cassandramapings.context.ICassandraManager;
-import com.bazarnazar.cassandramapings.context.pojo.IPojo;
+import com.bazarnazar.cassandramapings.exceptions.QueryException;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQueryInitial;
 import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
-import com.bazarnazar.cassandramapings.util.CassandraManagerUtil;
+import com.bazarnazar.cassandramapings.util.QueryUtil;
+import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
-import com.datastax.driver.mapping.annotations.ClusteringColumn;
-import com.datastax.driver.mapping.annotations.PartitionKey;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Created by Bazar on 25.05.16.
@@ -47,13 +47,8 @@ public class CassandraManager implements ICassandraManager {
 
     @Override
     public <T> ProxyResult<T> query(T primaryKey, PagingState pagingState) {
-        ISafeSelectQueryInitial<T> safeSelectQueryInitial = SafeQueryBuilder.select(primaryKey);
-        Arrays.stream(primaryKey.getClass().getDeclaredFields())
-              .filter(f -> f.getDeclaredAnnotation(PartitionKey.class) != null || f
-                      .getDeclaredAnnotation(ClusteringColumn.class) != null)
-              .map(f -> CassandraManagerUtil
-                      .fieldToExtractor(f, f.getType(), safeSelectQueryInitial.getEntityClass()))
-              .forEach(extractor -> safeSelectQueryInitial.where(extractor).eq());
+        ISafeSelectQueryInitial<T> safeSelectQueryInitial = SafeQueryBuilder
+                .createPkQuery(primaryKey);
         safeSelectQueryInitial.setPagingState(pagingState);
         return query(safeSelectQueryInitial);
     }
@@ -133,16 +128,65 @@ public class CassandraManager implements ICassandraManager {
 
     @Override
     public <T> void save(T entity) {
-        if (entity instanceof IPojo) {
-            Mapper<T> mapper = mappingManager.mapper((Class<T>) entity.getClass());
-            IPojo pojo = (IPojo) entity;
-            pojo.getModifiedColumns().forEach(System.out::println);
+        if (QueryUtil.getEntityClass(entity).getDeclaredAnnotation(IndexingTable.class) != null) {
+            throw new QueryException(QueryUtil.getEntityClass(entity)
+                                              .getName() + " is indexing table and should not be " +
+                                             "updated manually");
+        }
+        BatchStatement batchStatement = new BatchStatement();
+        saveStatements(entity).forEach(batchStatement::add);
+        mappingManager.getSession().execute(batchStatement);
+    }
+
+    private <T> Stream<Statement> saveStatements(T entity) {
+
+        //        if (entity instanceof IPojo) {
+        //            IPojo pojo = (IPojo) entity;
+        //            Stream<Statement> statementStream = pojo.getModifiedColumns().flatMap(
+        //                    columnName -> dataModelGraph.get(entity.getClass().getSuperclass())
+        //                                                .get(columnName).stream())
+        //                                                    .filter(new Dependency
+        //                                                            .CompactDependenciesFilter())
+        //                                                    .flatMap(
+        //                                                            d -> dependencyToStatements
+        // (entity, d));
+        //            return Stream.concat(statementStream, Stream.of(
+        //                    mappingManager.mapper(pojo.getStoredObject().getClass())
+        // .saveQuery(entity)));
+        //        } else {
+        //            mappingManager.getSession().execute(SafeQueryBuilder.insert(entity).build());
+        //        }
+        return Stream.of(SafeQueryBuilder.update(entity, SafeQueryBuilder.createPkQuery(entity))
+                                         .build());
+    }
+
+
+    private <T> Stream<Statement> dependencyToStatements(T entity, Dependency dependency) {
+        try {
+            Object dependentEntity = dependency.getDependentClass().newInstance();
+            if (dependency.isPkDependency()) {
+                return Stream.empty();
+            } else {
+                mapperFactory.getMapperFacade(entity.getClass(), dependency.getDependentClass())
+                             .map(entity, dependentEntity);
+                dependentEntity = refresh(dependentEntity);
+                mapperFactory.getMapperFacade(entity.getClass(), dependency.getDependentClass())
+                             .map(entity, dependentEntity);
+                return saveStatements(dependentEntity);
+            }
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new QueryException(e);
         }
     }
 
     @Override
     public <T> void remove(T entity) {
 
+    }
+
+    private <T> Stream<Statement> removeStatements(T entity) {
+        //        dataModelGraph.get(entity.)
+        return null;
     }
 
     @Override
@@ -168,6 +212,11 @@ public class CassandraManager implements ICassandraManager {
     @Override
     public Session getSession() {
         return mappingManager.getSession();
+    }
+
+    @Override
+    public MappingManager getMappingManager() {
+        return mappingManager;
     }
 
 }

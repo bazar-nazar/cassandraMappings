@@ -7,11 +7,11 @@ import com.bazarnazar.cassandramapings.context.ValidationPolicy;
 import com.bazarnazar.cassandramapings.context.impl.AContextConfiguration;
 import com.bazarnazar.cassandramapings.context.impl.CassandraContext;
 import com.bazarnazar.cassandramapings.model.User;
-import com.bazarnazar.cassandramapings.model.Video;
 import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.bazarnazar.cassandramapings.querybuilder.impl.SafeQueryBuilder;
 import com.datastax.driver.core.Cluster;
 
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -24,28 +24,43 @@ public class CassandraMappingTest {
         CassandraContext.getInstance().init(contextConfiguration);
         ICassandraManager cassandraManager = CassandraContext.getInstance()
                                                              .createCassandraManager();
+
+        //                User anyUser = cassandraManager.all(User.class).one();
+        //                anyUser.setEmail("fghjkl");
+        //                anyUser.setLastName("fghjkl");
+        //                cassandraManager.save(anyUser);
+        queryTest(cassandraManager);
+
+        //                ISafeSelectQuery<Video> videoISafeSelectQuery = SafeQueryBuilder.select
+        // (Video
+        //        .class);
+        //
+        //                for (User user : cassandraManager
+        //                .queryByDependentTable(videoISafeSelectQuery, User.class)) {
+        //            System.out.println(user);
+        //        }
+
+        //        videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
+
+        //        for (User user : cassandraManager
+        //                .queryDistinctByDependentTable(videoISafeSelectQuery, User.class)) {
+        //            System.out.println(user);
+        //        }
+
+        User user = new User();
+        user.setUserId(UUID.randomUUID());
+        user.setEmail("fghjkl");
+        user.setDateOfBirth(new Date());
+        user.setFirstName("GHJKL");
+        user.setLastName("FGHJK");
+        cassandraManager.save(user);
         User anyUser = cassandraManager.all(User.class).one();
-        anyUser.setEmail("fghjkl");
-        anyUser.setLastName("fghjkl");
-        //        cassandraManager.save(anyUser);
-        //        queryTest(cassandraManager);
-        //
-        ISafeSelectQuery<Video> videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
-        //
-//        for (User user : cassandraManager
-//                .queryByDependentTable(videoISafeSelectQuery, User.class)) {
-//            System.out.println(user);
-//        }
-
-//        videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
-
-        for (User user : cassandraManager
-                .queryDistinctByDependentTable(videoISafeSelectQuery, User.class)) {
-            System.out.println(user);
-        }
-
+        anyUser.setEmail("new@gmail.com");
+        System.out.println(anyUser);
+        cassandraManager.save(anyUser);
 
         CassandraContext.getInstance().stop();
+
     }
 
     private static void queryTest(ICassandraManager cassandraManager) {

@@ -6,6 +6,7 @@ import com.bazarnazar.cassandramapings.querybuilder.ISafeSelectQuery;
 import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.mapping.MappingManager;
 
 /**
  * Created by Bazar on 25.05.16.
@@ -46,7 +47,7 @@ public interface ICassandraManager {
 
     <T> T refresh(T entity);
 
-    <T> void save(T entity);
+    public abstract <T> void save(T entity);
 
     <T> void remove(T entity);
 
@@ -60,4 +61,5 @@ public interface ICassandraManager {
 
     Session getSession();
 
+    MappingManager getMappingManager();
 }
