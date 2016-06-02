@@ -27,17 +27,17 @@ public class CassandraMappingTest {
         User anyUser = cassandraManager.all(User.class).one();
         anyUser.setEmail("fghjkl");
         anyUser.setLastName("fghjkl");
-        cassandraManager.save(anyUser);
-        queryTest(cassandraManager);
-
+        //        cassandraManager.save(anyUser);
+        //        queryTest(cassandraManager);
+        //
         ISafeSelectQuery<Video> videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
+        //
+//        for (User user : cassandraManager
+//                .queryByDependentTable(videoISafeSelectQuery, User.class)) {
+//            System.out.println(user);
+//        }
 
-        for (User user : cassandraManager
-                .queryByDependentTable(videoISafeSelectQuery, User.class)) {
-            System.out.println(user);
-        }
-
-        videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
+//        videoISafeSelectQuery = SafeQueryBuilder.select(Video.class);
 
         for (User user : cassandraManager
                 .queryDistinctByDependentTable(videoISafeSelectQuery, User.class)) {

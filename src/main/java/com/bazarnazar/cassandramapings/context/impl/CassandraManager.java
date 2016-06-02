@@ -134,6 +134,7 @@ public class CassandraManager implements ICassandraManager {
     @Override
     public <T> void save(T entity) {
         if (entity instanceof IPojo) {
+            Mapper<T> mapper = mappingManager.mapper((Class<T>) entity.getClass());
             IPojo pojo = (IPojo) entity;
             pojo.getModifiedColumns().forEach(System.out::println);
         }

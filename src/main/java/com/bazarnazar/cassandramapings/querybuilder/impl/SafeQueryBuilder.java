@@ -22,4 +22,8 @@ public final class SafeQueryBuilder {
         return safeSelectQueryInitial;
     }
 
+    public static <T> InsertQuery<T> insert(T entity) {
+        return new InsertQuery<>(entity);
+    }
+
 }

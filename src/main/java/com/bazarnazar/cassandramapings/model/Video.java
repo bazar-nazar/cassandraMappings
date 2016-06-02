@@ -1,6 +1,8 @@
 package com.bazarnazar.cassandramapings.model;
 
 import com.bazarnazar.cassandramapings.annotations.DependentTables;
+import com.bazarnazar.cassandramapings.annotations.Generated;
+import com.bazarnazar.cassandramapings.annotations.GeneratorType;
 import com.bazarnazar.cassandramapings.model.index.VideoByTag;
 import com.bazarnazar.cassandramapings.model.joins.ActorByVideo;
 import com.bazarnazar.cassandramapings.model.joins.VideoByUser;
@@ -20,7 +22,7 @@ import java.util.UUID;
 public class Video {
 
     @PartitionKey
-    @Computed("now()")
+    @Generated(GeneratorType.NOW)
     private UUID videoId;
 
     @ClusteringColumn
@@ -90,5 +92,46 @@ public class Video {
 
     public void setGenres(String genres) {
         this.genres = genres;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Video))
+            return false;
+
+        Video video = (Video) o;
+
+        if (description != null ? !description
+                .equals(video.description) : video.description != null)
+            return false;
+        if (genres != null ? !genres.equals(video.genres) : video.genres != null)
+            return false;
+        if (releaseYear != null ? !releaseYear
+                .equals(video.releaseYear) : video.releaseYear != null)
+            return false;
+        if (tag != null ? !tag.equals(video.tag) : video.tag != null)
+            return false;
+        if (title != null ? !title.equals(video.title) : video.title != null)
+            return false;
+        if (userId != null ? !userId.equals(video.userId) : video.userId != null)
+            return false;
+        if (videoId != null ? !videoId.equals(video.videoId) : video.videoId != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = videoId != null ? videoId.hashCode() : 0;
+        result = 31 * result + (userId != null ? userId.hashCode() : 0);
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (releaseYear != null ? releaseYear.hashCode() : 0);
+        result = 31 * result + (tag != null ? tag.hashCode() : 0);
+        result = 31 * result + (genres != null ? genres.hashCode() : 0);
+        return result;
     }
 }

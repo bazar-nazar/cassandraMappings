@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
  */
 public class DistinctResult<T, INDEX> extends ComplexResult<T, INDEX> {
 
-    private Set<T> usedIndexes = new HashSet<>();
-
     DistinctResult(ProxyResult<INDEX> rs, BoundMapperFacade<INDEX, T> boundMapperFacade,
             ICassandraManager cassandraManager) {
         super(rs, boundMapperFacade, cassandraManager);
@@ -32,15 +30,62 @@ public class DistinctResult<T, INDEX> extends ComplexResult<T, INDEX> {
     }
 
     @Override
-    protected Iterator<T> fetch(Iterator<T> dataIterator, Iterator<INDEX> indexIterator) {
-        while ((resultBuffer == null || !dataIterator.hasNext()) && indexIterator.hasNext()) {
-            T indexVal = boundMapperFacade.map(indexIterator.next());
-            if (!usedIndexes.contains(indexVal)) {
-                resultBuffer = cassandraManager.<T>query(indexVal);
-                dataIterator = resultBuffer.iterator();
-                usedIndexes.add(indexVal);
+    public Iterator<T> iterator() {
+        return new DistinctIterator();
+    }
+
+    public class DistinctIterator implements Iterator<T> {
+
+        private final Iterator<INDEX> indexIterator = rs.iterator();
+        private Set<T> usedIndexes = new HashSet<>();
+        private Set<T> usedData = new HashSet<>();
+        private Iterator<T> dataIterator = null;
+        private ProxyResult<T> resultBuffer = null;
+        private T currentData = null;
+
+        private DistinctIterator() {
+            fetch();
+        }
+
+        private void fetch() {
+            currentData = null;
+            while ((resultBuffer == null || currentData == null) && indexIterator.hasNext()) {
+                T indexVal = boundMapperFacade.map(indexIterator.next());
+                if (!usedIndexes.contains(indexVal)) {
+                    resultBuffer = cassandraManager.<T>query(indexVal);
+                    dataIterator = resultBuffer.iterator();
+                    usedIndexes.add(indexVal);
+                    fetchIter();
+                }
             }
         }
-        return dataIterator;
+
+        private void fetchIter() {
+            while (dataIterator.hasNext() && currentData == null) {
+                T value = dataIterator.next();
+                if (!usedData.contains(value)) {
+                    usedData.add(value);
+                    currentData = value;
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return currentData != null;
+        }
+
+        @Override
+        public T next() {
+            T value = currentData;
+            fetch();
+            return value;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
     }
 }

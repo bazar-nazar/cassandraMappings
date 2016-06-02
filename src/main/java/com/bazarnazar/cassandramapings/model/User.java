@@ -1,6 +1,8 @@
 package com.bazarnazar.cassandramapings.model;
 
 import com.bazarnazar.cassandramapings.annotations.DependentTables;
+import com.bazarnazar.cassandramapings.annotations.Generated;
+import com.bazarnazar.cassandramapings.annotations.GeneratorType;
 import com.bazarnazar.cassandramapings.model.joins.VideoByUser;
 import com.datastax.driver.mapping.annotations.Computed;
 import com.datastax.driver.mapping.annotations.PartitionKey;
@@ -17,7 +19,7 @@ import java.util.UUID;
 public class User {
 
     @PartitionKey
-    @Computed("uuid()")
+    @Generated(GeneratorType.UUID)
     private UUID userId;
 
     private String firstName;

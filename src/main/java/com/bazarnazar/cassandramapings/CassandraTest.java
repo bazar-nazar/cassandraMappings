@@ -1,14 +1,9 @@
 package com.bazarnazar.cassandramapings;
 
-import com.bazarnazar.cassandramapings.model.User;
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.PagingState;
 import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.mapping.Mapper;
-import com.datastax.driver.mapping.MappingManager;
-import com.datastax.driver.mapping.Result;
 
 /**
  * Created by Bazar on 23.05.16.
@@ -39,15 +34,18 @@ public class CassandraTest {
         //        BatchStatement batchStatement = new BatchStatement();
         //        batchStatement.add(select);
 
-//        QueryBuilder.select().all().from("").
-        MappingManager mappingManager = new MappingManager(session);
-        Mapper<User> mapper = mappingManager.mapper(User.class);
-        UserAccessor userAccessor = mappingManager.createAccessor(UserAccessor.class);
-        Result<User> users = mapper.map(session.execute(userAccessor.getAllUsers()));
-        System.out.println(users.iterator().next());
-        PagingState pagingState = users.getExecutionInfo().getPagingState();
-        users = mapper.map(session.execute(userAccessor.getAllUsers().setPagingState(pagingState)));
-        System.out.println(users.iterator().next());
+        //        QueryBuilder.select().all().from("").
+        //        MappingManager mappingManager = new MappingManager(session);
+        //        Mapper<User> mapper = mappingManager.mapper(User.class);
+        //        UserAccessor userAccessor = mappingManager.createAccessor(UserAccessor.class);
+        //        Result<User> users = mapper.map(session.execute(userAccessor.getAllUsers()));
+        //        System.out.println(users.iterator().next());
+        //        PagingState pagingState = users.getExecutionInfo().getPagingState();
+        //        users = mapper.map(session.execute(userAccessor.getAllUsers().setPagingState
+        // (pagingState)));
+        //        System.out.println(users.iterator().next());
+
+        System.out.println(QueryBuilder.insertInto("tt").value("v1", QueryBuilder.uuid()).toString());
 
         //        for (User user : userAccessor.getAllUsers()) {
         //            System.out.println(user);
