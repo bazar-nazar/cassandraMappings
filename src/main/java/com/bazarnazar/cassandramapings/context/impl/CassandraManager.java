@@ -180,8 +180,8 @@ public class CassandraManager implements ICassandraManager {
     }
 
     @Override
-    public <T> void remove(T entity) {
-
+    public <T> void delete(T entity) {
+        SafeQueryBuilder.delete(SafeQueryBuilder.createPkQuery(entity));
     }
 
     private <T> Stream<Statement> removeStatements(T entity) {

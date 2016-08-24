@@ -53,11 +53,11 @@ public class CassandraMappingTest {
         user.setDateOfBirth(new Date());
         user.setFirstName("GHJKL");
         user.setLastName("FGHJK");
-        cassandraManager.save(user);
+        cassandraManager.delete(user);
         User anyUser = cassandraManager.all(User.class).one();
         anyUser.setEmail("new@gmail.com");
         System.out.println(anyUser);
-        cassandraManager.save(anyUser);
+        cassandraManager.delete(anyUser);
 
         CassandraContext.getInstance().stop();
 

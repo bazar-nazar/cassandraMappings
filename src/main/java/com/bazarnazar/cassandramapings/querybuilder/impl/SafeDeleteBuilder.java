@@ -16,17 +16,15 @@ public class SafeDeleteBuilder<T> implements IQueryBuilder<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SafeDeleteBuilder.class);
 
-    private Class<T> entityClass;
     private ISafeSelectQuery<T> safeSelectQuery;
 
-    SafeDeleteBuilder(Class<T> entityClass, ISafeSelectQuery<T> safeSelectQuery) {
-        this.entityClass = entityClass;
+    SafeDeleteBuilder(ISafeSelectQuery<T> safeSelectQuery) {
         this.safeSelectQuery = safeSelectQuery;
     }
 
     @Override
     public Statement build() {
-        String tableName = QueryUtil.getTableName(entityClass);
+        String tableName = QueryUtil.getTableName(safeSelectQuery.getEntityClass());
         Delete from = QueryBuilder.delete().from(tableName);
         safeSelectQuery.setWhere(from::where);
         LOGGER.debug("Delete: {}", from.toString());

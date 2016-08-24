@@ -49,7 +49,7 @@ public interface ICassandraManager {
 
     public abstract <T> void save(T entity);
 
-    <T> void remove(T entity);
+    <T> void delete(T entity);
 
     <T> void saveInBatch(T entity);
 

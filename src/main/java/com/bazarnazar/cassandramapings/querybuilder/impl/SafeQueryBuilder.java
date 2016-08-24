@@ -49,9 +49,9 @@ public final class SafeQueryBuilder {
         return new SafeUpdateBuilder<>(enity, selectQuery);
     }
 
-    public static <T> SafeDeleteBuilder<T> delete(Class<T> entityClas,
+    public static <T> SafeDeleteBuilder<T> delete(
             ISafeSelectQuery<T> selectQuery) {
-        return new SafeDeleteBuilder<>(entityClas, selectQuery);
+        return new SafeDeleteBuilder<>(selectQuery);
     }
 
 }
